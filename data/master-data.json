@@ -1,0 +1,31 @@
+{
+  "actualizadoEm": "2026-09-18T10:00:00+02:00",
+  "viaturas": [
+    { "matricula": "VIATURA 001", "modelo": "Autocarro", "estado": "Operacional" },
+    { "matricula": "VIATURA 002", "modelo": "Autocarro", "estado": "Operacional" },
+    { "matricula": "VIATURA 003", "modelo": "Autocarro", "estado": "Operacional" }
+  ],
+  "motoristas": [
+    { "nome": "Motorista 001", "estado": "Activo" },
+    { "nome": "Motorista 002", "estado": "Activo" },
+    { "nome": "Motorista 003", "estado": "Activo" }
+  ],
+  "assistentes": [
+    { "nome": "Assistente 001", "estado": "Activo" },
+    { "nome": "Assistente 002", "estado": "Activo" }
+  ],
+  "rotas": [
+    { "nome": "Rota 001", "estado": "Activa" },
+    { "nome": "Rota 002", "estado": "Activa" },
+    { "nome": "Rota 003", "estado": "Activa" }
+  ],
+  "tiposDeslocacao": [
+    { "codigo": "TD001", "nome": "Operacional", "estado": "Activo" },
+    { "codigo": "TD002", "nome": "Posicionamento", "estado": "Activo" },
+    { "codigo": "TD003", "nome": "Recolha", "estado": "Activo" },
+    { "codigo": "TD004", "nome": "Manutenção", "estado": "Activo" },
+    { "codigo": "TD005", "nome": "Abastecimento", "estado": "Activo" },
+    { "codigo": "TD006", "nome": "Administrativa", "estado": "Activo" },
+    { "codigo": "TD007", "nome": "Extraordinária", "estado": "Activo" }
+  ]
+}

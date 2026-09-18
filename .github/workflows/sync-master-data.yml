@@ -1,0 +1,64 @@
+name: Sync SharePoint master data
+
+on:
+  repository_dispatch:
+    types: [sync-master-data]
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate and write public master data
+        env:
+          MASTER_DATA_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          path = Path("data/master-data.json")
+          current = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+          payload = json.loads(os.environ["MASTER_DATA_PAYLOAD"])
+
+          def clean(items, fields):
+              output = []
+              for item in items or []:
+                  if not isinstance(item, dict):
+                      continue
+                  row = {field: str(item.get(field, "")).strip() for field in fields}
+                  if any(row.values()):
+                      output.append(row)
+              return output
+
+          public_data = {
+              "actualizadoEm": payload.get("actualizadoEm") or datetime.now(timezone.utc).isoformat(),
+              "viaturas": clean(payload.get("viaturas"), ["codigo", "estado"]),
+              "motoristas": clean(payload.get("motoristas"), ["codigo", "estado"]),
+              "assistentes": clean(payload.get("assistentes"), ["codigo", "estado"]),
+              "rotas": clean(payload.get("rotas"), ["codigo", "estado"]),
+              "tiposDeslocacao": current.get("tiposDeslocacao", [])
+          }
+
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(public_data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Publish changes
+        run: |
+          git config user.name "SIR Data Sync"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/master-data.json
+          if git diff --cached --quiet; then
+            echo "No data changes"
+          else
+            git commit -m "Sync master data from SharePoint"
+            git push
+          fi

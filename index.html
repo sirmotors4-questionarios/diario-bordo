@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-MZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b5aa8">
+  <meta name="description" content="Registo operacional do Diário de Bordo da SIR Motors.">
+  <title>Diário de Bordo | SIR Motors</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true">SIR</div>
+    <div>
+      <p class="eyebrow">SIR MOTORS</p>
+      <h1>Diário de Bordo</h1>
+    </div>
+    <div class="sync" id="syncStatus"><span></span>A carregar</div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="form-title">
+      <div>
+        <p class="date-line" id="todayLabel"></p>
+        <h2 id="form-title">Registo da operação</h2>
+        <p>Preencha os dados da viagem. Os campos assinalados com * são obrigatórios.</p>
+      </div>
+      <div class="progress-wrap" aria-label="Progresso do formulário">
+        <strong id="progressText">0%</strong>
+        <div class="progress"><span id="progressBar"></span></div>
+      </div>
+    </section>
+
+    <form id="diarioForm" novalidate>
+      <section class="card">
+        <div class="section-heading"><span>01</span><div><h3>Equipa e viatura</h3><p>Identificação da operação</p></div></div>
+        <div class="grid">
+          <label>Data *<input type="date" name="data" required></label>
+          <label>Turno *<select name="turno" required><option value="">Seleccionar</option><option>Manhã</option><option>Tarde</option><option>Noite</option></select></label>
+          <label class="wide">Viatura disponível *<select name="viatura" data-list="viaturas" required><option value="">A carregar...</option></select></label>
+          <label>Motorista activo *<select name="motorista" data-list="motoristas" required><option value="">A carregar...</option></select></label>
+          <label>Assistente activo<select name="assistente" data-list="assistentes"><option value="">A carregar...</option></select></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading"><span>02</span><div><h3>Deslocação</h3><p>Rota e finalidade da viagem</p></div></div>
+        <div class="grid">
+          <label class="wide">Rota *<select name="rota" data-list="rotas" required><option value="">A carregar...</option></select></label>
+          <label>Tipo de deslocação *<select name="tipoDeslocacao" data-list="tiposDeslocacao" required><option value="">A carregar...</option></select></label>
+          <label>Zona<input type="text" name="zona" placeholder="Ex.: Maputo"></label>
+          <label>Hora de saída *<input type="time" name="horaSaida" required></label>
+          <label>Hora de chegada<input type="time" name="horaChegada"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading"><span>03</span><div><h3>Quilometragem</h3><p>Leituras do painel da viatura</p></div></div>
+        <div class="grid">
+          <label>KM inicial *<input type="number" name="kmInicial" min="0" step="1" inputmode="numeric" required></label>
+          <label>KM final<input type="number" name="kmFinal" min="0" step="1" inputmode="numeric"></label>
+          <label class="wide">Observações<textarea name="observacoes" rows="4" placeholder="Registe ocorrências, desvios ou informação relevante"></textarea></label>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <p id="formHint">Confirme os dados antes de enviar.</p>
+        <button type="submit" id="submitButton"><span>Enviar registo</span><span aria-hidden="true">→</span></button>
+      </div>
+    </form>
+
+    <section class="success" id="successPanel" hidden aria-live="polite">
+      <div class="success-icon">✓</div>
+      <h2>Registo recebido</h2>
+      <p id="successMessage"></p>
+      <button type="button" id="newEntry">Novo registo</button>
+    </section>
+  </main>
+
+  <footer><span>SIR Motors · Operações Rodoviárias</span><span id="dataTimestamp"></span></footer>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

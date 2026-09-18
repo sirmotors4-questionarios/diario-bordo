@@ -1,31 +1,44 @@
 {
-  "actualizadoEm": "2026-09-18T10:00:00+02:00",
-  "viaturas": [
-    { "codigo": "V-001", "estado": "Operacional" },
-    { "codigo": "V-002", "estado": "Operacional" },
-    { "codigo": "V-003", "estado": "Operacional" }
-  ],
-  "motoristas": [
-    { "codigo": "M-001", "estado": "Activo" },
-    { "codigo": "M-002", "estado": "Activo" },
-    { "codigo": "M-003", "estado": "Activo" }
-  ],
-  "assistentes": [
-    { "codigo": "A-001", "estado": "Activo" },
-    { "codigo": "A-002", "estado": "Activo" }
-  ],
-  "rotas": [
-    { "codigo": "R-001", "estado": "Activa" },
-    { "codigo": "R-002", "estado": "Activa" },
-    { "codigo": "R-003", "estado": "Activa" }
-  ],
+  "actualizadoEm": "2026-09-18T14:30:53.5162763Z",
+  "viaturas": [],
+  "motoristas": [],
+  "assistentes": [],
+  "rotas": [],
   "tiposDeslocacao": [
-    { "codigo": "TD001", "nome": "Operacional", "estado": "Activo" },
-    { "codigo": "TD002", "nome": "Posicionamento", "estado": "Activo" },
-    { "codigo": "TD003", "nome": "Recolha", "estado": "Activo" },
-    { "codigo": "TD004", "nome": "Manutenção", "estado": "Activo" },
-    { "codigo": "TD005", "nome": "Abastecimento", "estado": "Activo" },
-    { "codigo": "TD006", "nome": "Administrativa", "estado": "Activo" },
-    { "codigo": "TD007", "nome": "Extraordinária", "estado": "Activo" }
+    {
+      "codigo": "TD001",
+      "nome": "Operacional",
+      "estado": "Activo"
+    },
+    {
+      "codigo": "TD002",
+      "nome": "Posicionamento",
+      "estado": "Activo"
+    },
+    {
+      "codigo": "TD003",
+      "nome": "Recolha",
+      "estado": "Activo"
+    },
+    {
+      "codigo": "TD004",
+      "nome": "Manutenção",
+      "estado": "Activo"
+    },
+    {
+      "codigo": "TD005",
+      "nome": "Abastecimento",
+      "estado": "Activo"
+    },
+    {
+      "codigo": "TD006",
+      "nome": "Administrativa",
+      "estado": "Activo"
+    },
+    {
+      "codigo": "TD007",
+      "nome": "Extraordinária",
+      "estado": "Activo"
+    }
   ]
 }

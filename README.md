@@ -1,6 +1,6 @@
 # Diário de Bordo — SIR Motors
 
-Aplicação web estática preparada para publicação em `https://sirmotors.github.io/diario-bordo/`.
+Aplicação web estática publicada em `https://sirmotors4-questionarios.github.io/diario-bordo/`.
 
 ## Estado actual
 
@@ -23,4 +23,4 @@ Nunca coloque palavras-passe, tokens do SharePoint ou chaves privadas nestes fic
 
 ## Publicação no GitHub Pages
 
-O repositório deve chamar-se `diario-bordo` dentro da organização/conta `sirmotors`. Nas definições do repositório, active **Pages** a partir da branch `main` e da pasta raiz.
+O repositório chama-se `diario-bordo` dentro da conta `sirmotors4-questionarios`. Nas definições do repositório, active **Pages** a partir da branch `main` e da pasta raiz.

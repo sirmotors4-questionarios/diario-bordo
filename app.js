@@ -21,10 +21,10 @@ async function loadMasterData() {
     const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Não foi possível consultar as listas.');
     const data = await response.json();
-    fillSelect('viaturas', data.viaturas, item => `${item.matricula}${item.modelo ? ` · ${item.modelo}` : ''}`, item => item.matricula);
-    fillSelect('motoristas', data.motoristas, item => item.nome, item => item.nome);
-    fillSelect('assistentes', data.assistentes, item => item.nome, item => item.nome, true);
-    fillSelect('rotas', data.rotas, item => item.nome, item => item.nome);
+    fillSelect('viaturas', data.viaturas, item => item.codigo, item => item.codigo);
+    fillSelect('motoristas', data.motoristas, item => item.codigo, item => item.codigo);
+    fillSelect('assistentes', data.assistentes, item => item.codigo, item => item.codigo, true);
+    fillSelect('rotas', data.rotas, item => item.codigo, item => item.codigo);
     fillSelect('tiposDeslocacao', data.tiposDeslocacao, item => item.nome || item, item => item.nome || item);
     const updated = data.actualizadoEm ? new Date(data.actualizadoEm) : new Date();
     document.querySelector('#dataTimestamp').textContent = `Listas actualizadas: ${new Intl.DateTimeFormat('pt-MZ', { dateStyle: 'short', timeStyle: 'short' }).format(updated)}`;

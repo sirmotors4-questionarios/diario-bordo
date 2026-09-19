@@ -1,9 +1,505 @@
 {
-  "actualizadoEm": "2026-09-19T09:05:02.8209187Z",
-  "viaturas": [],
-  "motoristas": [],
-  "assistentes": [],
-  "rotas": [],
+  "actualizadoEm": "2026-09-19T09:07:20.6947084Z",
+  "viaturas": [
+    {
+      "codigo": "Albazine - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Tchumene - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Casa Branca - UEM",
+      "estado": ""
+    },
+    {
+      "codigo": "Marracuene - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Matola Gare - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Matola Gare - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Boane - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Missao Roque - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Casa Branca - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Boane - Mozal",
+      "estado": ""
+    },
+    {
+      "codigo": "Tchumene - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Marracuene - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Coca-Cola - Museu",
+      "estado": ""
+    }
+  ],
+  "motoristas": [
+    {
+      "codigo": "AOT 434 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 435 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 436 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 437 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 438 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 439 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 440 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 441 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 442 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 443 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 444 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 445 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 446 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 453 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 457 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 458 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 478 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 479 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 480 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 481 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 482 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 483 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 484 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 485 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 486 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 487 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 488 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 489 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 490 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 491 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 516 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 517 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 664 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 665 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 666 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 667 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 676 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 684 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 685 MC",
+      "estado": ""
+    },
+    {
+      "codigo": "AOT 686 MC",
+      "estado": ""
+    }
+  ],
+  "assistentes": [
+    {
+      "codigo": "Adriano Dinis Guambe",
+      "estado": ""
+    },
+    {
+      "codigo": "Alberto Mario Bombe",
+      "estado": ""
+    },
+    {
+      "codigo": "Amadio Justino Macuacua",
+      "estado": ""
+    },
+    {
+      "codigo": "Amone Joao Gama",
+      "estado": ""
+    },
+    {
+      "codigo": "Aniceto Paulino Nhacudime",
+      "estado": ""
+    },
+    {
+      "codigo": "Antonio Fernando Nhassengo",
+      "estado": ""
+    },
+    {
+      "codigo": "Antonio Pedro Muianga",
+      "estado": ""
+    },
+    {
+      "codigo": "Antonio Rafael Matola",
+      "estado": ""
+    },
+    {
+      "codigo": "Antonio Simiao Sitoe",
+      "estado": ""
+    },
+    {
+      "codigo": "Arlindo da Gloria",
+      "estado": ""
+    },
+    {
+      "codigo": "Arnaldo Felisberto Nhantumbo",
+      "estado": ""
+    },
+    {
+      "codigo": "Castigo Abel Mucavel",
+      "estado": ""
+    },
+    {
+      "codigo": "Celso Menezes Valentim",
+      "estado": ""
+    },
+    {
+      "codigo": "Cipriano Luis Muassapo",
+      "estado": ""
+    },
+    {
+      "codigo": "Claudio Simeao Mutombene",
+      "estado": ""
+    },
+    {
+      "codigo": "Decio Ernesto Macie",
+      "estado": ""
+    },
+    {
+      "codigo": "Domingos Joao Rafael",
+      "estado": ""
+    },
+    {
+      "codigo": "Edson Laisse",
+      "estado": ""
+    },
+    {
+      "codigo": "Ernesto Jose Tsambe",
+      "estado": ""
+    },
+    {
+      "codigo": "Eurico Filipe Mauaie",
+      "estado": ""
+    },
+    {
+      "codigo": "Fabiao Lucas Matola",
+      "estado": ""
+    },
+    {
+      "codigo": "Fernando Abrao Coana",
+      "estado": ""
+    },
+    {
+      "codigo": "Fernando Nhande",
+      "estado": ""
+    },
+    {
+      "codigo": "Filimao Muianga",
+      "estado": ""
+    },
+    {
+      "codigo": "Florencio Francisco Chauque",
+      "estado": ""
+    },
+    {
+      "codigo": "Helder Paulo Tembe",
+      "estado": ""
+    },
+    {
+      "codigo": "Hilario Cinquenta Mauocuane",
+      "estado": ""
+    },
+    {
+      "codigo": "Joao Antonio Joaquim",
+      "estado": ""
+    },
+    {
+      "codigo": "Joaquim Jaime Ticone",
+      "estado": ""
+    },
+    {
+      "codigo": "Luis Vasco Massango",
+      "estado": ""
+    },
+    {
+      "codigo": "Manuel Antonio Tembe",
+      "estado": ""
+    },
+    {
+      "codigo": "Paulino Nhantumbo",
+      "estado": ""
+    },
+    {
+      "codigo": "Raul Joao Cuinhane",
+      "estado": ""
+    },
+    {
+      "codigo": "Samito Joao Chambela",
+      "estado": ""
+    },
+    {
+      "codigo": "Simoes Joaquim Das Neves",
+      "estado": ""
+    },
+    {
+      "codigo": "Tomas Paulo Cumbane",
+      "estado": ""
+    },
+    {
+      "codigo": "Vidal Joaquim Chissano",
+      "estado": ""
+    }
+  ],
+  "rotas": [
+    {
+      "codigo": "Celina Alice Daniel",
+      "estado": ""
+    },
+    {
+      "codigo": "Eliana Da Gloria Chambe",
+      "estado": ""
+    },
+    {
+      "codigo": "Esmeralda Julio Langa",
+      "estado": ""
+    },
+    {
+      "codigo": "Gerson Marcos Augusto Simango",
+      "estado": ""
+    },
+    {
+      "codigo": "Haiate Nafusse Salimo Aly",
+      "estado": ""
+    },
+    {
+      "codigo": "Isabel Goncalo Boana",
+      "estado": ""
+    },
+    {
+      "codigo": "Isabel Merelina Langa",
+      "estado": ""
+    },
+    {
+      "codigo": "Jessica Isabel Muzime",
+      "estado": ""
+    },
+    {
+      "codigo": "Joaquina Sarmento Inguana",
+      "estado": ""
+    },
+    {
+      "codigo": "Jose Matias Aleixo",
+      "estado": ""
+    },
+    {
+      "codigo": "Julieta Antonio Timbane",
+      "estado": ""
+    },
+    {
+      "codigo": "Julieta Manuel Muhate",
+      "estado": ""
+    },
+    {
+      "codigo": "Laurenciana Celestino Munguambe",
+      "estado": ""
+    },
+    {
+      "codigo": "Leonizio Bongane Leonardo Cumbe",
+      "estado": ""
+    },
+    {
+      "codigo": "Leopoldina da Carmen Fernandes",
+      "estado": ""
+    },
+    {
+      "codigo": "Ligia Monteiro Wavale",
+      "estado": ""
+    },
+    {
+      "codigo": "Maria Elias Zandamela",
+      "estado": ""
+    },
+    {
+      "codigo": "Milton Jose Marrengula",
+      "estado": ""
+    },
+    {
+      "codigo": "Nilza Anselmo Nhamuazo",
+      "estado": ""
+    },
+    {
+      "codigo": "Ocelina Francisco Machanguene",
+      "estado": ""
+    },
+    {
+      "codigo": "Ornelia da Maria Constantino",
+      "estado": ""
+    },
+    {
+      "codigo": "Ozelia Laura",
+      "estado": ""
+    },
+    {
+      "codigo": "Percina Antonio Langa",
+      "estado": ""
+    },
+    {
+      "codigo": "Raima Luserio Muendane",
+      "estado": ""
+    },
+    {
+      "codigo": "Rosalia Eduardo Ladria",
+      "estado": ""
+    },
+    {
+      "codigo": "Sergio Rebeca dos Santos",
+      "estado": ""
+    },
+    {
+      "codigo": "Sibelia Felizarda Rafael Bila",
+      "estado": ""
+    },
+    {
+      "codigo": "Teresa Pinto Maunze",
+      "estado": ""
+    },
+    {
+      "codigo": "Tomas Marcelino Chambela",
+      "estado": ""
+    },
+    {
+      "codigo": "Vania Jorge Taela",
+      "estado": ""
+    },
+    {
+      "codigo": "Vanilla da Paula Luis Mulhanga",
+      "estado": ""
+    },
+    {
+      "codigo": "Yuna Amelia Filipe Sitoe",
+      "estado": ""
+    },
+    {
+      "codigo": "Zelia Pedro Tembe",
+      "estado": ""
+    }
+  ],
   "tiposDeslocacao": [
     {
       "codigo": "TD001",

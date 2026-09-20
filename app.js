@@ -954,26 +954,13 @@ form.addEventListener(
       ) {
 
 
-        const response =
-          await fetch(
-            config.submissionUrl,
-            {
-
-              method:
-                'POST',
-
-              headers: {
-                'Content-Type':
-                  'application/json'
-              },
-
-              body:
-                JSON.stringify(
-                  payload
-                )
-
-            }
-          );
+        const response = await fetch(
+          config.submissionUrl,
+          {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          }
+        );
 
 
         if (

@@ -48,17 +48,26 @@
         <div class="grid">
           <label class="wide">Rota *<select name="rota" data-list="rotas" required><option value="">A carregar...</option></select></label>
           <label>Tipo de deslocação *<select name="tipoDeslocacao" data-list="tiposDeslocacao" required><option value="">A carregar...</option></select></label>
-          <label>Zona<select name="zona" data-list="zonas"><option value="">A carregar...</option></select></label>
           <label>Hora de saída *<input type="time" name="horaSaida" required></label>
           <label>Hora de chegada<input type="time" name="horaChegada"></label>
         </div>
       </section>
 
       <section class="card">
-        <div class="section-heading"><span>03</span><div><h3>Quilometragem</h3><p>Leituras do painel da viatura</p></div></div>
+        <div class="section-heading"><span>03</span><div><h3>Quilometragem e combustível</h3><p>Leituras do painel da viatura</p></div></div>
         <div class="grid">
           <label>KM inicial *<input type="number" name="kmInicial" min="0" step="1" inputmode="numeric" required></label>
           <label>KM final<input type="number" name="kmFinal" min="0" step="1" inputmode="numeric"></label>
+          <label>Nível de abastecimento *
+            <select name="nivelAbastecimento" required>
+              <option value="">Seleccionar</option>
+              <option value="Reserva">Reserva</option>
+              <option value="1/4">1/4</option>
+              <option value="1/2">1/2</option>
+              <option value="3/4">3/4</option>
+              <option value="Cheio">Cheio</option>
+            </select>
+          </label>
           <label class="wide">Observações<textarea name="observacoes" rows="4" placeholder="Registe ocorrências, desvios ou informação relevante"></textarea></label>
         </div>
       </section>

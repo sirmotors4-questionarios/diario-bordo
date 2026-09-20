@@ -2,9 +2,9 @@ window.DIARIO_CONFIG = {
   // Endereço público que devolverá as listas actualizadas em JSON.
   masterDataUrl: "",
 
-  // Endereço que receberá cada submissão do formulário.
-  submissionUrl: "",
+  // Endereço HTTPS do Power Automate que receberá cada submissão.
+  submissionUrl: "COLE_AQUI_O_HTTP_URL_DO_POWER_AUTOMATE",
 
-  // Enquanto os endereços estiverem vazios, o site funciona em modo de demonstração.
-  demoMode: true
+  // Coloque false para usar o envio real.
+  demoMode: false
 };

@@ -1,60 +1,6 @@
 {
-  "actualizadoEm": "2026-09-20T09:35:02.6488242Z",
+  "actualizadoEm": "2026-09-20T09:37:49.3721926Z",
   "viaturas": [
-    {
-      "codigo": "Albazine - Baixa",
-      "estado": ""
-    },
-    {
-      "codigo": "Tchumene - Baixa",
-      "estado": ""
-    },
-    {
-      "codigo": "Casa Branca - UEM",
-      "estado": ""
-    },
-    {
-      "codigo": "Marracuene - Baixa",
-      "estado": ""
-    },
-    {
-      "codigo": "Matola Gare - Baixa",
-      "estado": ""
-    },
-    {
-      "codigo": "Matola Gare - Museu",
-      "estado": ""
-    },
-    {
-      "codigo": "Boane - Baixa",
-      "estado": ""
-    },
-    {
-      "codigo": "Missao Roque - Museu",
-      "estado": ""
-    },
-    {
-      "codigo": "Casa Branca - Museu",
-      "estado": ""
-    },
-    {
-      "codigo": "Boane - Mozal",
-      "estado": ""
-    },
-    {
-      "codigo": "Tchumene - Museu",
-      "estado": ""
-    },
-    {
-      "codigo": "Marracuene - Museu",
-      "estado": ""
-    },
-    {
-      "codigo": "Coca-Cola - Museu",
-      "estado": ""
-    }
-  ],
-  "motoristas": [
     {
       "codigo": "AOT 434 MC",
       "estado": ""
@@ -216,7 +162,7 @@
       "estado": ""
     }
   ],
-  "assistentes": [
+  "motoristas": [
     {
       "codigo": "Adriano Dinis Guambe",
       "estado": ""
@@ -366,7 +312,7 @@
       "estado": ""
     }
   ],
-  "rotas": [
+  "assistentes": [
     {
       "codigo": "Celina Alice Daniel",
       "estado": ""
@@ -497,6 +443,60 @@
     },
     {
       "codigo": "Zelia Pedro Tembe",
+      "estado": ""
+    }
+  ],
+  "rotas": [
+    {
+      "codigo": "Albazine - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Tchumene - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Casa Branca - UEM",
+      "estado": ""
+    },
+    {
+      "codigo": "Marracuene - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Matola Gare - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Matola Gare - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Boane - Baixa",
+      "estado": ""
+    },
+    {
+      "codigo": "Missao Roque - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Casa Branca - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Boane - Mozal",
+      "estado": ""
+    },
+    {
+      "codigo": "Tchumene - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Marracuene - Museu",
+      "estado": ""
+    },
+    {
+      "codigo": "Coca-Cola - Museu",
       "estado": ""
     }
   ],

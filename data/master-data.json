@@ -1,5 +1,5 @@
 {
-  "actualizadoEm": "2026-09-21T14:25:02.6404460Z",
+  "actualizadoEm": "2026-09-21T14:30:04.0050657Z",
   "viaturas": [
     {
       "codigo": "AOT 435 MC",
@@ -306,6 +306,54 @@
     {
       "codigo": "Vidal Joaquim Chissano",
       "estado": ""
+    },
+    {
+      "codigo": "Paulino",
+      "estado": ""
+    },
+    {
+      "codigo": "Joaquim",
+      "estado": ""
+    },
+    {
+      "codigo": "João",
+      "estado": ""
+    },
+    {
+      "codigo": "Baptista",
+      "estado": ""
+    },
+    {
+      "codigo": "Artur João",
+      "estado": ""
+    },
+    {
+      "codigo": "Gafur Hossumane",
+      "estado": ""
+    },
+    {
+      "codigo": "Antônio",
+      "estado": ""
+    },
+    {
+      "codigo": "Dinho",
+      "estado": ""
+    },
+    {
+      "codigo": "Rubão Bila",
+      "estado": ""
+    },
+    {
+      "codigo": "Ernesto",
+      "estado": ""
+    },
+    {
+      "codigo": "Jaime Mahadjane",
+      "estado": ""
+    },
+    {
+      "codigo": "Massunda",
+      "estado": ""
     }
   ],
   "assistentes": [
@@ -439,6 +487,34 @@
     },
     {
       "codigo": "Zelia Pedro Tembe",
+      "estado": ""
+    },
+    {
+      "codigo": "Sheila Mussane",
+      "estado": ""
+    },
+    {
+      "codigo": "Mully Munjaga",
+      "estado": ""
+    },
+    {
+      "codigo": "Cacilda Zibia",
+      "estado": ""
+    },
+    {
+      "codigo": "Carla Coana",
+      "estado": ""
+    },
+    {
+      "codigo": "Helena",
+      "estado": ""
+    },
+    {
+      "codigo": "Talisa Tembe",
+      "estado": ""
+    },
+    {
+      "codigo": "Vânia Silva",
       "estado": ""
     }
   ],

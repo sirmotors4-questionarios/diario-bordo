@@ -43,6 +43,15 @@
         </div>
       </section>
 
+      <section class="card history-card" id="historicoSection" aria-labelledby="historicoTitle">
+        <div class="section-heading"><span>H</span><div><h3 id="historicoTitle">Histórico do dia</h3><p>Registos existentes para a data e viatura seleccionadas</p></div></div>
+        <div class="history-toolbar">
+          <p id="historyStatus" role="status" aria-live="polite">Seleccione a data e a viatura para consultar o histórico.</p>
+          <button type="button" id="refreshHistory" class="secondary-button" hidden>Actualizar histórico</button>
+        </div>
+        <div id="historyResults" class="history-results" aria-live="polite"></div>
+      </section>
+
       <section class="card">
         <div class="section-heading"><span>02</span><div><h3>Deslocação</h3><p>Rota e finalidade da viagem</p></div></div>
         <div class="grid">

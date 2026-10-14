@@ -736,6 +736,64 @@ function historyDate(value) {
   return raw.slice(0, 10);
 }
 
+function setSelectIfValid(select, candidates) {
+  if (!select || select.value) return false;
+  for (const candidate of candidates) {
+    const value = String(candidate ?? '').trim();
+    if (!value) continue;
+    const options = [...select.options];
+    const match = options.find(opt => opt.value.trim() === value || opt.textContent.trim() === value);
+    if (match) {
+      select.value = match.value;
+      return true;
+    }
+  }
+  return false;
+}
+
+function latestHistoryRow(rows) {
+  // Nr global ordena os lançamentos. Se não existir, usar hora de início/fim.
+  return [...rows].sort((a,b) => {
+    const na = Number(historyField(a, 'Nr', 'nr'));
+    const nb = Number(historyField(b, 'Nr', 'nr'));
+    if (Number.isFinite(na) && Number.isFinite(nb) && na > 0 && nb > 0) return nb-na;
+    return historyField(b, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio')
+      .localeCompare(historyField(a, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio'));
+  })[0];
+}
+
+function populateFromLastTrip(rows) {
+  if (!rows.length) return;
+  // Respeitar alterações já introduzidas pelo utilizador.
+  const last = latestHistoryRow(rows);
+  setSelectIfValid(form.elements.turno, [historyField(last, 'Turno','turno')]);
+  setSelectIfValid(form.elements.motorista, [historyField(last, 'Motorista','motorista')]);
+  setSelectIfValid(form.elements.assistente, [historyField(last, 'Assistente','assistente')]);
+  const route = historyField(last, 'Rota', 'rota');
+  const routeOptions = [...routeSelect.options];
+  const routeMatch = routeOptions.find(option =>
+    option.value.trim() === route || option.textContent.trim() === route);
+  // Os códigos do menu podem ser diferentes do nome da rota no Excel.
+  const endpointsMatch = routeOptions.find(option => {
+    const ends = routeDirections.get(option.value);
+    if (!ends) return false;
+    const text = route.replace(/[–—→]/g,'-').split('-').map(s=>s.trim().toLowerCase());
+    return text.length === 2 && ends.map(s=>s.trim().toLowerCase()).join('|') === text.join('|');
+  });
+  const chosen = routeMatch || endpointsMatch;
+  if (chosen) {
+    for (const trip of document.querySelectorAll('#currentTrips .trip-entry')) {
+      const routeField = tripField(trip,'rota');
+      if (!routeField.value) {
+        routeField.value = chosen.value;
+        updateTripDirections(trip);
+        setSelectIfValid(tripField(trip,'sentido'), [historyField(last,'Sentido','sentido')]);
+      }
+    }
+  }
+  updateProgress();
+}
+
 function renderHistory(rows) {
   if (!rows.length) {
     historyStatus.textContent = 'Não lançado — não há deslocações registadas para esta data e viatura.';
@@ -757,7 +815,8 @@ function renderHistory(rows) {
       ['Rota', historyField(row, 'Rota', 'rota')],
       ['Sentido', historyField(row, 'Sentido', 'sentido')],
       ['Tipo', historyField(row, 'Tipo_Deslocacao', 'Tipo de Deslocação', 'deslocacao')],
-      ['Hora', [historyField(row, 'Hora', 'Hora_Inicio', 'hora_inicio'), historyField(row, 'Hora_Fim', 'hora_fim')].filter(Boolean).join(' – ')],
+      ['Hora de início', historyField(row, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio')],
+      ['Hora de fim', historyField(row, 'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim')],
       ['KM inicial', historyField(row, 'Km_Inicial', 'Km Inicial', 'km_inicio')],
       ['KM final', historyField(row, 'Km_Final', 'Km Final', 'km_fim')],
       ['Combustível inicial', historyField(row, 'Combustivel_Inicial', 'Nível Combustível Início', 'combustivel_inicio')],
@@ -830,6 +889,7 @@ async function loadHistory() {
       historyDate(historyField(row, 'Data', 'data')) === data
     );
     renderHistory(matching);
+    populateFromLastTrip(matching);
   } catch (error) {
     if (version !== historyQueryVersion) return;
     console.error('Falha ao consultar histórico:', error);

@@ -4,7 +4,8 @@ window.DIARIO_CONFIG = {
 
   // Endereço HTTPS do Power Automate que receberá cada submissão.
   submissionUrl: "https://default5fc7bb0c4c3f4008ae039efd62fc96.c9.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/15/workflows/80ced2a22712418f903383d3a86c4994/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zbbjBDHybVXMwhMniw1qw3RDRreUJkVkX42diD2R9II",
-
+  
+  historyUrl: "https://default5fc7bb0c4c3f4008ae039efd62fc96.c9.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/13/workflows/23710d7d1cb0434a8546f4ce48468570/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=S4vHAQerKlkLS6J3bLP2D1ymFIDk_aYCjlOv6LSBLlo",
   // Coloque false para usar o envio real.
   demoMode: false
 };

@@ -848,395 +848,169 @@ form.elements.viatura.addEventListener('change', loadHistory);
 refreshHistoryButton.addEventListener('click', loadHistory);
 
 // ======================================================
-// ENVIO DO FORMULÁRIO PARA POWER AUTOMATE
+// DESLOCAMENTOS CORRENTES E ENVIO AGRUPADO
 // ======================================================
 
-form.addEventListener(
-  'submit',
-  async event => {
+const tripsContainer = document.querySelector('#currentTrips');
+const addTripButton = document.querySelector('#addTrip');
+const tripTemplate = tripsContainer.querySelector('.trip-entry').cloneNode(true);
+let nextTripId = 2;
 
-    event.preventDefault();
+function tripField(trip, name) {
+  return trip.querySelector('[name="' + name + '"]');
+}
 
-
-    // ----------------------------------------------
-    // VALIDAR CAMPOS OBRIGATÓRIOS
-    // ----------------------------------------------
-
-    const invalid =
-      [
-        ...form.querySelectorAll(
-          '[required]'
-        )
-      ]
-        .filter(
-          field =>
-            !field.value.trim()
-        );
-
-
-    if (
-      invalid.length
-    ) {
-
-      invalid.forEach(
-        field =>
-          field
-            .classList
-            .add(
-              'invalid'
-            )
-      );
-
-
-      invalid[0].focus();
-
-
-      document.querySelector(
-        '#formHint'
-      ).textContent =
-        'Preencha todos os campos obrigatórios.';
-
-
-      return;
-
+function updateTripDirections(trip) {
+  const route = tripField(trip, 'rota').value;
+  const sentido = tripField(trip, 'sentido');
+  const endpoints = routeDirections.get(route);
+  const previous = sentido.value;
+  sentido.replaceChildren();
+  const initial = document.createElement('option');
+  initial.value = '';
+  initial.textContent = endpoints ? 'Seleccionar' : 'Seleccione primeiro a rota';
+  sentido.append(initial);
+  sentido.disabled = !endpoints;
+  if (endpoints) {
+    const [from, to] = endpoints;
+    for (const name of [from + ' → ' + to, to + ' → ' + from]) {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      sentido.append(option);
     }
-
-
-    // ----------------------------------------------
-    // LER DADOS DO FORMULÁRIO
-    // ----------------------------------------------
-
-    const dadosFormulario =
-      new FormData(
-        form
-      );
-
-
-    const kmInicial =
-      Number(
-        dadosFormulario.get(
-          'kmInicial'
-        )
-      );
-
-
-    const kmFinal =
-      Number(
-        dadosFormulario.get(
-          'kmFinal'
-        )
-      );
-
-
-    const combustivelInicial =
-      Number(
-        dadosFormulario.get(
-          'nivelCombustivelInicial'
-        )
-      );
-
-
-    const combustivelFinal =
-      Number(
-        dadosFormulario.get(
-          'nivelCombustivelFinal'
-        )
-      );
-
-
-    // ----------------------------------------------
-    // VALIDAR QUILOMETRAGEM
-    // ----------------------------------------------
-
-    if (
-      kmFinal <
-      kmInicial
-    ) {
-
-      document.querySelector(
-        '#formHint'
-      ).textContent =
-        'O KM final não pode ser inferior ao KM inicial.';
-
-
-      form.elements
-        .kmFinal
-        .classList
-        .add(
-          'invalid'
-        );
-
-
-      form.elements
-        .kmFinal
-        .focus();
-
-
-      return;
-
+    if ([...sentido.options].some(option => option.value === previous)) {
+      sentido.value = previous;
     }
-
-
-    // ----------------------------------------------
-    // JSON EXACTAMENTE COMO O POWER AUTOMATE ESPERA
-    // ----------------------------------------------
-
-    const payload = {
-
-      data:
-        dadosFormulario.get(
-          'data'
-        ),
-
-      turno:
-        dadosFormulario.get(
-          'turno'
-        ),
-
-      deslocacao:
-        dadosFormulario.get(
-          'tipoDeslocacao'
-        ),
-
-      hora_inicio:
-        dadosFormulario.get(
-          'horaSaida'
-        ),
-
-      hora_fim:
-        dadosFormulario.get(
-          'horaChegada'
-        ),
-
-      viatura:
-        dadosFormulario.get(
-          'viatura'
-        ),
-
-      motorista:
-        dadosFormulario.get(
-          'motorista'
-        ),
-
-      assistente:
-        dadosFormulario.get(
-          'assistente'
-        ),
-
-      rota:
-        dadosFormulario.get(
-          'rota'
-        ),
-
-      sentido:
-        dadosFormulario.get(
-          'sentido'
-        ),
-
-      km_inicio:
-        kmInicial,
-
-      km_fim:
-        kmFinal,
-
-      combustivel_inicio:
-        combustivelInicial,
-
-      combustivel_fim:
-        combustivelFinal,
-
-      observacoes:
-        dadosFormulario.get(
-          'observacoes'
-        )
-        ||
-        ''
-
-    };
-
-
-    console.log(
-      'Dados enviados ao Power Automate:',
-      payload
-    );
-
-
-    // ----------------------------------------------
-    // BLOQUEAR BOTÃO
-    // ----------------------------------------------
-
-    submitButton.disabled =
-      true;
-
-
-    submitButton
-      .querySelector(
-        'span'
-      )
-      .textContent =
-        'A enviar...';
-
-
-    document.querySelector(
-      '#formHint'
-    ).textContent =
-      'A enviar o registo para o sistema...';
-
-
-    try {
-
-
-      // ============================================
-      // ENVIO REAL
-      // ============================================
-
-      if (
-        config.submissionUrl &&
-        !config.demoMode
-      ) {
-
-
-        const response = await fetch(
-          config.submissionUrl,
-          {
-            method: 'POST',
-        
-            headers: {
-              'Content-Type': 'application/json'
-            },
-        
-            body: JSON.stringify(payload)
-          }
-        );
-
-
-        if (
-          !response.ok
-        ) {
-
-          throw new Error(
-            `Submissão recusada. HTTP ${response.status}`
-          );
-
-        }
-
-      }
-
-
-      // ============================================
-      // MODO DEMONSTRAÇÃO
-      // ============================================
-
-      else {
-
-
-        const entries =
-          JSON.parse(
-            localStorage.getItem(
-              'sirDiarioBordoDemo'
-            )
-            ||
-            '[]'
-          );
-
-
-        entries.push(
-          payload
-        );
-
-
-        localStorage.setItem(
-          'sirDiarioBordoDemo',
-          JSON.stringify(
-            entries
-          )
-        );
-
-      }
-
-
-      // ============================================
-      // SUCESSO
-      // ============================================
-
-      form.hidden =
-        true;
-
-
-      successPanel.hidden =
-        false;
-
-      // Reconsultar o histórico após a confirmação de submissão.
-      loadHistory();
-
-
-      document.querySelector(
-        '#successMessage'
-      ).textContent =
-
-        config.demoMode
-
-          ?
-
-          'Modo de demonstração: o registo ficou guardado neste dispositivo.'
-
-          :
-
-          'Os dados foram enviados para o sistema com sucesso.';
-
-
-      document.querySelector(
-        '#formHint'
-      ).textContent =
-        'Registo enviado com sucesso.';
-
-
-      window.scrollTo(
-        {
-          top: 0,
-          behavior: 'smooth'
-        }
-      );
-
-    }
-
-    catch (
-      error
-    ) {
-
-
-      console.error(
-        'Erro no envio para Power Automate:',
-        error
-      );
-
-
-      document.querySelector(
-        '#formHint'
-      ).textContent =
-        'Não foi possível enviar. Confirme a ligação e tente novamente.';
-
-    }
-
-    finally {
-
-
-      submitButton.disabled =
-        false;
-
-
-      submitButton
-        .querySelector(
-          'span'
-        )
-        .textContent =
-          'Enviar registo';
-
-    }
-
   }
-);
+}
 
+function setupTrip(trip) {
+  tripField(trip, 'rota').addEventListener('change', () => {
+    updateTripDirections(trip);
+    updateProgress();
+  });
+  trip.querySelector('.remove-trip').addEventListener('click', () => {
+    if (tripsContainer.children.length <= 1) return;
+    trip.remove();
+    refreshTripLabels();
+    updateProgress();
+  });
+}
+
+function refreshTripLabels() {
+  const allTrips = [...tripsContainer.querySelectorAll('.trip-entry')];
+  allTrips.forEach((trip, i) => {
+    trip.querySelector('.trip-banner strong').textContent = 'Corrente · Deslocação ' + (i + 1);
+    trip.querySelector('.remove-trip').hidden = allTrips.length === 1;
+  });
+}
+
+setupTrip(tripsContainer.querySelector('.trip-entry'));
+
+addTripButton.addEventListener('click', () => {
+  const trip = tripTemplate.cloneNode(true);
+  trip.dataset.tripId = String(nextTripId++);
+  trip.querySelectorAll('input,textarea').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
+  trip.querySelectorAll('select').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
+  tripField(trip, 'rota').innerHTML = routeSelect.innerHTML;
+  tripField(trip, 'sentido').removeAttribute('id');
+  tripField(trip, 'sentido').disabled = true;
+  setupTrip(trip);
+  tripsContainer.append(trip);
+  updateTripDirections(trip);
+  refreshTripLabels();
+  updateProgress();
+  trip.scrollIntoView({behavior:'smooth',block:'nearest'});
+});
+
+function tripPayload(trip, base) {
+  const get = name => tripField(trip, name).value;
+  const kmStart = Number(get('kmInicial'));
+  const kmEnd = Number(get('kmFinal'));
+  if (kmEnd < kmStart) {
+    tripField(trip, 'kmFinal').classList.add('invalid');
+    throw new Error('O KM final não pode ser inferior ao KM inicial.');
+  }
+  return {
+    ...base,
+    deslocacao: get('tipoDeslocacao'),
+    hora_inicio: get('horaSaida'),
+    hora_fim: get('horaChegada'),
+    rota: get('rota'),
+    sentido: get('sentido'),
+    km_inicio: kmStart,
+    km_fim: kmEnd,
+    combustivel_inicio: Number(get('nivelCombustivelInicial')),
+    combustivel_fim: Number(get('nivelCombustivelFinal')),
+    observacoes: get('observacoes') || ''
+  };
+}
+
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  const invalid = [...form.querySelectorAll('[required]')].filter(field => !field.value.trim());
+  if (invalid.length) {
+    invalid.forEach(field => field.classList.add('invalid'));
+    invalid[0].focus();
+    document.querySelector('#formHint').textContent = 'Preencha todos os campos obrigatórios.';
+    return;
+  }
+  const common = {
+    data: form.elements.data.value,
+    turno: form.elements.turno.value,
+    viatura: form.elements.viatura.value,
+    motorista: form.elements.motorista.value,
+    assistente: form.elements.assistente.value
+  };
+  let registos;
+  try {
+    registos = [...tripsContainer.querySelectorAll('.trip-entry')]
+      .map(trip => tripPayload(trip, common));
+  } catch (error) {
+    document.querySelector('#formHint').textContent = error.message;
+    return;
+  }
+
+  submitButton.disabled = true;
+  addTripButton.disabled = true;
+  submitButton.querySelector('span').textContent = 'A enviar...';
+  document.querySelector('#formHint').textContent = 'A enviar ' + registos.length + ' registo(s)...';
+
+  try {
+    if (config.submissionUrl && !config.demoMode) {
+      // O fluxo de submissão deve aceitar este envelope e criar uma linha por registo.
+      const response = await fetch(config.submissionUrl, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({registos})
+      });
+      if (!response.ok) throw new Error('Submissão recusada: HTTP ' + response.status);
+      // Só marcar como concluído quando o fluxo confirmar a gravação integral.
+      const confirmation = await response.json();
+      if (confirmation?.sucesso !== true || confirmation?.gravados !== registos.length) {
+        throw new Error('O serviço não confirmou a gravação integral. Não volte a enviar antes de verificar os registos no Excel.');
+      }
+    } else {
+      const entries = JSON.parse(localStorage.getItem('sirDiarioBordoDemo') || '[]');
+      entries.push(...registos);
+      localStorage.setItem('sirDiarioBordoDemo', JSON.stringify(entries));
+    }
+    form.hidden = true;
+    successPanel.hidden = false;
+    document.querySelector('#successMessage').textContent =
+      registos.length + ' deslocação(ões) registada(s) com sucesso.';
+    loadHistory();
+    window.scrollTo({top:0,behavior:'smooth'});
+  } catch(error) {
+    console.error('Falha no envio agrupado:', error);
+    document.querySelector('#formHint').textContent = error.message || 'Erro na submissão.';
+  } finally {
+    submitButton.disabled = false;
+    addTripButton.disabled = false;
+    submitButton.querySelector('span').textContent = 'Enviar registos';
+  }
+});
 
 // ======================================================
 // NOVO REGISTO
@@ -1252,6 +1026,9 @@ document
 
 
       form.reset();
+      const extras = [...tripsContainer.querySelectorAll('.trip-entry')].slice(1);
+      extras.forEach(trip => trip.remove());
+      refreshTripLabels();
 
 
       setToday();

@@ -729,7 +729,7 @@ function historyField(row, ...names) {
 function historyDate(value) {
   const raw = String(value ?? '').trim();
   const number = Number(raw);
-  if (raw && /^\\d+(?:\\.\\d+)?$/.test(raw) && number > 0 && number < 200000) {
+  if (raw && /^\d+(?:\.\d+)?$/.test(raw) && number > 0 && number < 200000) {
     return new Date(Date.UTC(1899, 11, 30) + Math.floor(number) * 86400000)
       .toISOString().slice(0, 10);
   }

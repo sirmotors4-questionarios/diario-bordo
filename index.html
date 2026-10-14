@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b5aa8">
   <meta name="description" content="Registo operacional do Diário de Bordo da SIR Motors.">
   <title>Diário de Bordo | SIR Motors</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261013-1">
 </head>
 <body>
   <header class="topbar">
@@ -43,6 +43,20 @@
         </div>
       </section>
 
+      <section class="card history-card" id="dailyHistory" aria-labelledby="historyTitle">
+        <div class="section-heading history-heading">
+          <span aria-hidden="true">↺</span>
+          <div>
+            <h3 id="historyTitle">Histórico do dia</h3>
+            <p id="historyStatus">Seleccione a data e a viatura para consultar.</p>
+          </div>
+          <button type="button" class="icon-button" id="refreshHistory" aria-label="Actualizar histórico" title="Actualizar histórico">↻</button>
+        </div>
+        <div class="history-list" id="historyList" aria-live="polite">
+          <div class="history-empty">A aguardar a data e a viatura.</div>
+        </div>
+      </section>
+
       <section class="card">
         <div class="section-heading"><span>02</span><div><h3>Deslocação</h3><p>Rota e finalidade da viagem</p></div></div>
         <div class="grid">
@@ -63,11 +77,15 @@
           <label>Nível final de combustível *<input type="number" name="nivelCombustivelFinal" min="0" step="0.01" inputmode="decimal" placeholder="Ex.: 13,8" required></label>
           <label class="wide">Observações<textarea name="observacoes" rows="4" placeholder="Registe ocorrências, desvios ou informação relevante"></textarea></label>
         </div>
+        <div class="add-trip-wrap">
+          <p>Use “Adicionar” para incluir outra viagem antes do envio final.</p>
+          <button type="button" id="addTripButton"><span aria-hidden="true">＋</span> Adicionar deslocação</button>
+        </div>
       </section>
 
       <div class="form-actions">
         <p id="formHint">Confirme os dados antes de enviar.</p>
-        <button type="submit" id="submitButton"><span>Enviar registo</span><span aria-hidden="true">→</span></button>
+        <button type="submit" id="submitButton"><span>Enviar registos</span><span aria-hidden="true">→</span></button>
       </div>
     </form>
 
@@ -80,7 +98,7 @@
   </main>
 
   <footer><span>SIR Motors · Operações Rodoviárias</span><span id="dataTimestamp"></span></footer>
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=20261013-1"></script>
+  <script src="app.js?v=20261013-1"></script>
 </body>
 </html>

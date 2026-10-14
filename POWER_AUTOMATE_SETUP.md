@@ -76,3 +76,92 @@ Os nomes entre parênteses devem coincidir com os nomes dados às quatro acçõe
 ## Informação pública
 
 O ficheiro `data/master-data.json` é público. O fluxo foi limitado a códigos e estados. Não envie nomes, matrículas, números de carta, contactos, documentos, datas de admissão ou outras informações pessoais.
+
+## Consulta do histórico diário
+
+O formulário consulta o histórico quando **Data** e **Viatura** estão preenchidas. Para activar esta função, crie um fluxo instantâneo chamado `WEB - Histórico Diário de Bordo`.
+
+### 1. Gatilho HTTP
+
+Use **When an HTTP request is received** e aceite o método `GET`. O formulário enviará estes parâmetros na URL:
+
+- `data`: data no formato `AAAA-MM-DD`;
+- `viatura`: código da viatura.
+
+No fluxo, leia-os com:
+
+```text
+triggerOutputs()?['queries']?['data']
+triggerOutputs()?['queries']?['viatura']
+```
+
+### 2. Ler a tabela Excel
+
+Adicione **List rows present in a table** (Excel Online Business) e escolha:
+
+- a localização e biblioteca do ficheiro no SharePoint;
+- o mesmo workbook usado pelo fluxo `WEB - Registo Diário de Bordo`;
+- a mesma tabela usada na acção **Add a row into a table** desse fluxo.
+
+Active a paginação da acção se a tabela puder ultrapassar 256 linhas.
+
+### 3. Filtrar data e viatura
+
+Adicione **Filter array**. Em **From**, use o campo `value` da acção anterior. No modo avançado, use a expressão abaixo e ajuste `Data` e `Viatura` apenas se os cabeçalhos reais do Excel tiverem nomes diferentes:
+
+```text
+@and(
+  equals(string(item()?['Data']), string(triggerOutputs()?['queries']?['data'])),
+  equals(toUpper(trim(string(item()?['Viatura']))), toUpper(trim(string(triggerOutputs()?['queries']?['viatura']))))
+)
+```
+
+Se a coluna Data do Excel incluir hora, substitua a primeira comparação por:
+
+```text
+equals(formatDateTime(item()?['Data'], 'yyyy-MM-dd'), triggerOutputs()?['queries']?['data'])
+```
+
+### 4. Preparar a resposta
+
+Adicione **Select** com a saída do Filter array. Devolva somente os campos necessários ao cartão do histórico:
+
+| Chave devolvida | Coluna no Excel |
+|---|---|
+| `data` | Data |
+| `turno` | Turno |
+| `deslocacao` | Deslocação |
+| `hora_inicio` | Hora Início |
+| `hora_fim` | Hora Fim |
+| `viatura` | Viatura |
+| `motorista` | Motorista |
+| `assistente` | Assistente |
+| `rota` | Rota |
+| `sentido` | Sentido |
+| `km_inicio` | KM Início |
+| `km_fim` | KM Fim |
+| `combustivel_inicio` | Combustível Início |
+| `combustivel_fim` | Combustível Fim |
+| `observacoes` | Observações |
+
+Por fim, adicione **Response**:
+
+- Status code: `200`
+- Header `Content-Type`: `application/json`
+- Header `Access-Control-Allow-Origin`: o domínio publicado do formulário
+- Body:
+
+```json
+{
+  "viagens": "@{body('Select_Historico')}"
+}
+```
+
+Guarde o fluxo, copie a URL HTTP e coloque-a em `historyUrl` no ficheiro `config.js`. O código do formulário acrescenta automaticamente `data` e `viatura` à URL.
+
+### Resultado no formulário
+
+- viagens retornadas pelo Excel: cartão azul com `Já lançado`;
+- viagens adicionadas antes do envio final: cartão verde com `Lançamento actual`;
+- nenhuma viagem encontrada: `Não lançado`;
+- o botão **Enviar registos** envia as deslocações adicionadas uma a uma para o fluxo de registo existente.

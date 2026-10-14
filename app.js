@@ -6,8 +6,15 @@ const syncStatus = document.querySelector('#syncStatus');
 const successPanel = document.querySelector('#successPanel');
 const routeSelect = document.querySelector('[data-list="rotas"]');
 const sentidoSelect = document.querySelector('#sentidoSelect');
+const historyList = document.querySelector('#historyList');
+const historyStatus = document.querySelector('#historyStatus');
+const refreshHistoryButton = document.querySelector('#refreshHistory');
+const addTripButton = document.querySelector('#addTripButton');
 
 const routeDirections = new Map();
+let savedTrips = [];
+let pendingTrips = [];
+let historyRequest = 0;
 
 const ROUTE_ENDPOINTS = {
   1: ['Albazine', 'Baixa'],
@@ -675,6 +682,269 @@ function updateProgress() {
 
 
 // ======================================================
+// HISTÓRICO E DESLOCAÇÕES DESTA SESSÃO
+// ======================================================
+
+const tripFieldNames = [
+  'rota',
+  'sentido',
+  'tipoDeslocacao',
+  'horaSaida',
+  'horaChegada',
+  'kmInicial',
+  'kmFinal',
+  'nivelCombustivelInicial',
+  'nivelCombustivelFinal',
+  'observacoes'
+];
+
+function pickValue(item, ...keys) {
+  const entries = Object.entries(item || {});
+  const wanted = keys.map(key => normalise(key).toLowerCase());
+  const match = entries.find(([key]) => wanted.includes(normalise(key).toLowerCase()));
+  return match ? match[1] : '';
+}
+
+function normaliseTrip(item) {
+  return {
+    data: pickValue(item, 'data', 'Data'),
+    turno: pickValue(item, 'turno', 'Turno'),
+    deslocacao: pickValue(item, 'deslocacao', 'Deslocação', 'tipoDeslocacao'),
+    hora_inicio: pickValue(item, 'hora_inicio', 'Hora Início', 'Hora de saída', 'horaSaida'),
+    hora_fim: pickValue(item, 'hora_fim', 'Hora Fim', 'Hora de chegada', 'horaChegada'),
+    viatura: pickValue(item, 'viatura', 'Viatura'),
+    motorista: pickValue(item, 'motorista', 'Motorista'),
+    assistente: pickValue(item, 'assistente', 'Assistente'),
+    rota: pickValue(item, 'rota', 'Rota'),
+    sentido: pickValue(item, 'sentido', 'Sentido'),
+    km_inicio: pickValue(item, 'km_inicio', 'KM Início', 'KM inicial', 'kmInicial'),
+    km_fim: pickValue(item, 'km_fim', 'KM Fim', 'KM final', 'kmFinal'),
+    combustivel_inicio: pickValue(item, 'combustivel_inicio', 'Combustível Início', 'nivelCombustivelInicial'),
+    combustivel_fim: pickValue(item, 'combustivel_fim', 'Combustível Fim', 'nivelCombustivelFinal'),
+    observacoes: pickValue(item, 'observacoes', 'Observações')
+  };
+}
+
+function currentHistoryKey() {
+  return {
+    data: normalise(form.elements.data.value),
+    viatura: normalise(form.elements.viatura.value)
+  };
+}
+
+function isCurrentSelection(trip) {
+  const key = currentHistoryKey();
+  return normalise(trip.data) === key.data && normalise(trip.viatura) === key.viatura;
+}
+
+function renderTrip(trip, current = false, index = -1) {
+  const title = [trip.rota, trip.sentido].filter(Boolean).join(' · ') || 'Deslocação';
+  const hours = [trip.hora_inicio, trip.hora_fim].filter(Boolean).join(' – ') || 'Hora não indicada';
+  const km = trip.km_inicio !== '' && trip.km_fim !== ''
+    ? `${trip.km_inicio} – ${trip.km_fim} km`
+    : 'KM não indicado';
+  const remove = current
+    ? `<button type="button" class="remove-trip" data-remove-trip="${index}">Remover</button>`
+    : '';
+
+  return `
+    <article class="history-entry${current ? ' current' : ''}">
+      <div class="history-entry-head">
+        <span class="history-badge">${current ? 'Lançamento actual' : 'Já lançado'}</span>
+        <strong>${escapeHtml(title)}</strong>
+        ${remove}
+      </div>
+      <div class="history-meta">
+        <span>${escapeHtml(hours)}</span>
+        <span>${escapeHtml(km)}</span>
+        <span>${escapeHtml(trip.deslocacao || 'Tipo não indicado')}</span>
+        ${trip.motorista ? `<span>Motorista: ${escapeHtml(trip.motorista)}</span>` : ''}
+      </div>
+    </article>`;
+}
+
+function renderHistory() {
+  const key = currentHistoryKey();
+  const current = pendingTrips
+    .map((trip, index) => ({ trip, index }))
+    .filter(({ trip }) => isCurrentSelection(trip));
+
+  if (!key.data || !key.viatura) {
+    historyStatus.textContent = 'Seleccione a data e a viatura para consultar.';
+    historyList.innerHTML = '<div class="history-empty">A aguardar a data e a viatura.</div>';
+    return;
+  }
+
+  const cards = [
+    ...current.map(({ trip, index }) => renderTrip(trip, true, index)),
+    ...savedTrips.map(trip => renderTrip(trip))
+  ];
+
+  historyList.innerHTML = cards.join('') || '<div class="history-empty"><strong>Não lançado</strong><br>Não existem viagens para esta data e viatura.</div>';
+
+  const savedText = `${savedTrips.length} ${savedTrips.length === 1 ? 'viagem lançada' : 'viagens lançadas'}`;
+  const currentText = current.length ? ` · ${current.length} ${current.length === 1 ? 'actual' : 'actuais'}` : '';
+  historyStatus.textContent = `${savedText}${currentText}`;
+}
+
+async function loadDailyHistory() {
+  const key = currentHistoryKey();
+  const requestId = ++historyRequest;
+  savedTrips = [];
+  renderHistory();
+
+  if (!key.data || !key.viatura) return;
+
+  if (config.demoMode) {
+    const entries = JSON.parse(localStorage.getItem('sirDiarioBordoDemo') || '[]');
+    savedTrips = entries.map(normaliseTrip).filter(isCurrentSelection);
+    renderHistory();
+    return;
+  }
+
+  if (!config.historyUrl) {
+    historyStatus.textContent = 'Consulta ao Excel ainda não configurada.';
+    historyList.innerHTML = '<div class="history-empty">Configure <strong>historyUrl</strong> para mostrar os lançamentos do SharePoint.</div>';
+    return;
+  }
+
+  refreshHistoryButton.disabled = true;
+  historyStatus.textContent = 'A consultar o histórico no SharePoint...';
+  historyList.innerHTML = '<div class="history-empty">A carregar viagens...</div>';
+
+  try {
+    const url = new URL(config.historyUrl, window.location.href);
+    url.searchParams.set('data', key.data);
+    url.searchParams.set('viatura', key.viatura);
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Consulta recusada. HTTP ${response.status}`);
+    const body = await response.json();
+    if (requestId !== historyRequest) return;
+    const rows = Array.isArray(body) ? body : (body.viagens || body.value || body.items || []);
+    savedTrips = rows.map(normaliseTrip);
+    renderHistory();
+  } catch (error) {
+    if (requestId !== historyRequest) return;
+    console.error('Erro ao consultar histórico:', error);
+    historyStatus.textContent = 'Não foi possível consultar o histórico.';
+    historyList.innerHTML = '<div class="history-empty">Falha na ligação ao SharePoint. Tente actualizar.</div>';
+  } finally {
+    if (requestId === historyRequest) refreshHistoryButton.disabled = false;
+  }
+}
+
+function collectCurrentTrip() {
+  const invalid = [...form.querySelectorAll('[required]')].filter(field => !field.value.trim());
+  if (invalid.length) {
+    invalid.forEach(field => field.classList.add('invalid'));
+    invalid[0].focus();
+    document.querySelector('#formHint').textContent = 'Preencha todos os campos obrigatórios.';
+    return null;
+  }
+
+  const values = new FormData(form);
+  const kmInicio = Number(values.get('kmInicial'));
+  const kmFim = Number(values.get('kmFinal'));
+  if (kmFim < kmInicio) {
+    form.elements.kmFinal.classList.add('invalid');
+    form.elements.kmFinal.focus();
+    document.querySelector('#formHint').textContent = 'O KM final não pode ser inferior ao KM inicial.';
+    return null;
+  }
+
+  return {
+    data: values.get('data'), turno: values.get('turno'),
+    deslocacao: values.get('tipoDeslocacao'),
+    hora_inicio: values.get('horaSaida'), hora_fim: values.get('horaChegada'),
+    viatura: values.get('viatura'), motorista: values.get('motorista'),
+    assistente: values.get('assistente'), rota: values.get('rota'),
+    sentido: values.get('sentido'), km_inicio: kmInicio, km_fim: kmFim,
+    combustivel_inicio: Number(values.get('nivelCombustivelInicial')),
+    combustivel_fim: Number(values.get('nivelCombustivelFinal')),
+    observacoes: values.get('observacoes') || ''
+  };
+}
+
+function clearTripFields() {
+  tripFieldNames.forEach(name => {
+    if (form.elements[name]) form.elements[name].value = '';
+  });
+  updateSentidos();
+  updateProgress();
+}
+
+addTripButton.addEventListener('click', () => {
+  const trip = collectCurrentTrip();
+  if (!trip) return;
+  pendingTrips.push(trip);
+  clearTripFields();
+  renderHistory();
+  document.querySelector('#formHint').textContent = 'Deslocação adicionada. Pode preencher outra ou enviar os registos.';
+  document.querySelector('#dailyHistory').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+historyList.addEventListener('click', event => {
+  const button = event.target.closest('[data-remove-trip]');
+  if (!button) return;
+  pendingTrips.splice(Number(button.dataset.removeTrip), 1);
+  renderHistory();
+});
+
+form.elements.data.addEventListener('change', loadDailyHistory);
+form.elements.viatura.addEventListener('change', loadDailyHistory);
+refreshHistoryButton.addEventListener('click', loadDailyHistory);
+
+// Quando existem deslocações adicionadas, o envio final processa a fila.
+form.addEventListener('submit', async event => {
+  if (!pendingTrips.length) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+
+  const hasCurrentTrip = tripFieldNames.some(name => normalise(form.elements[name]?.value));
+  if (hasCurrentTrip) {
+    const current = collectCurrentTrip();
+    if (!current) return;
+    pendingTrips.push(current);
+    renderHistory();
+  }
+
+  submitButton.disabled = true;
+  submitButton.querySelector('span').textContent = 'A enviar...';
+  document.querySelector('#formHint').textContent = `A enviar ${pendingTrips.length} deslocações...`;
+
+  try {
+    for (const payload of pendingTrips) {
+      if (config.submissionUrl && !config.demoMode) {
+        const response = await fetch(config.submissionUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error(`Submissão recusada. HTTP ${response.status}`);
+      } else {
+        const entries = JSON.parse(localStorage.getItem('sirDiarioBordoDemo') || '[]');
+        entries.push(payload);
+        localStorage.setItem('sirDiarioBordoDemo', JSON.stringify(entries));
+      }
+    }
+
+    const total = pendingTrips.length;
+    pendingTrips = [];
+    form.hidden = true;
+    successPanel.hidden = false;
+    document.querySelector('#successMessage').textContent = `${total} ${total === 1 ? 'deslocação foi enviada' : 'deslocações foram enviadas'} para o sistema com sucesso.`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (error) {
+    console.error('Erro no envio para Power Automate:', error);
+    document.querySelector('#formHint').textContent = 'Não foi possível concluir o envio. As deslocações continuam nesta página.';
+  } finally {
+    submitButton.disabled = false;
+    submitButton.querySelector('span').textContent = 'Enviar registos';
+  }
+}, true);
+
+
+// ======================================================
 // ALTERAÇÃO DOS CAMPOS
 // ======================================================
 
@@ -1085,7 +1355,7 @@ form.addEventListener(
           'span'
         )
         .textContent =
-          'Enviar registo';
+          'Enviar registos';
 
     }
 
@@ -1107,6 +1377,12 @@ document
 
 
       form.reset();
+
+
+      pendingTrips = [];
+
+
+      savedTrips = [];
 
 
       setToday();
@@ -1131,6 +1407,9 @@ document
 
       updateProgress();
 
+
+      loadDailyHistory();
+
     }
   );
 
@@ -1144,3 +1423,5 @@ setToday();
 loadMasterData();
 
 updateProgress();
+
+renderHistory();

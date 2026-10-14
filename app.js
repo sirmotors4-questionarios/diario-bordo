@@ -888,7 +888,33 @@ function updateTripDirections(trip) {
   }
 }
 
+function showTripEditor(trip) {
+  tripsContainer.querySelectorAll('.trip-entry').forEach(other => {
+    if (other !== trip) other.classList.add('trip-collapsed');
+  });
+  trip.classList.remove('trip-collapsed');
+  trip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function refreshTripSummary(trip) {
+  const get = name => tripField(trip, name)?.value || '';
+  const label = trip.querySelector('.trip-summary');
+  if (!label) return;
+  label.textContent = [get('rota'), get('sentido'), get('horaSaida') + '–' + get('horaChegada'),
+    'KM ' + get('kmInicial') + '–' + get('kmFinal')].filter(Boolean).join(' · ');
+}
+
 function setupTrip(trip) {
+  const banner = trip.querySelector('.trip-banner');
+  const edit = document.createElement('button');
+  edit.type = 'button';
+  edit.className = 'secondary-button edit-trip';
+  edit.textContent = 'Editar';
+  edit.addEventListener('click', () => showTripEditor(trip));
+  banner.append(edit);
+  const summary = document.createElement('p');
+  summary.className = 'trip-summary';
+  banner.after(summary);
   tripField(trip, 'rota').addEventListener('change', () => {
     updateTripDirections(trip);
     updateProgress();
@@ -912,10 +938,34 @@ function refreshTripLabels() {
 setupTrip(tripsContainer.querySelector('.trip-entry'));
 
 addTripButton.addEventListener('click', () => {
+  const active = tripsContainer.querySelector('.trip-entry:not(.trip-collapsed)')
+    || tripsContainer.lastElementChild;
+
+  // Não guardar um deslocamento incompleto como parte do lote.
+  const invalid = [...active.querySelectorAll('[required]')]
+    .filter(field => !field.value.trim());
+  if (invalid.length) {
+    invalid.forEach(field => field.classList.add('invalid'));
+    invalid[0].focus();
+    document.querySelector('#formHint').textContent =
+      'Complete o deslocamento corrente antes de adicionar outro.';
+    return;
+  }
+  if (Number(tripField(active, 'kmFinal').value) < Number(tripField(active, 'kmInicial').value)) {
+    tripField(active, 'kmFinal').classList.add('invalid');
+    tripField(active, 'kmFinal').focus();
+    document.querySelector('#formHint').textContent = 'O KM final não pode ser inferior ao KM inicial.';
+    return;
+  }
+
+  refreshTripSummary(active);
+  active.classList.add('trip-collapsed');
+
   const trip = tripTemplate.cloneNode(true);
   trip.dataset.tripId = String(nextTripId++);
   trip.dataset.registrationId = newRegistrationId();
-  trip.querySelectorAll('input,textarea').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
+  // A nova deslocação começa sem valores; Data/Viatura/Equipa permanecem.
+  trip.querySelectorAll('input, textarea').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
   trip.querySelectorAll('select').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
   tripField(trip, 'rota').innerHTML = routeSelect.innerHTML;
   tripField(trip, 'sentido').removeAttribute('id');
@@ -925,7 +975,9 @@ addTripButton.addEventListener('click', () => {
   updateTripDirections(trip);
   refreshTripLabels();
   updateProgress();
-  trip.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.querySelector('#formHint').textContent =
+    'Deslocamento anterior adicionado ao lote. Preencha o seguinte.';
+  trip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
 
 function tripPayload(trip, base) {
@@ -1033,7 +1085,9 @@ document
       form.reset();
       const extras = [...tripsContainer.querySelectorAll('.trip-entry')].slice(1);
       extras.forEach(trip => trip.remove());
-      tripsContainer.querySelector('.trip-entry').dataset.registrationId = newRegistrationId();
+      const firstTrip = tripsContainer.querySelector('.trip-entry');
+      firstTrip.classList.remove('trip-collapsed');
+      firstTrip.dataset.registrationId = newRegistrationId();
       refreshTripLabels();
 
 

@@ -110,3 +110,9 @@ footer { width: min(980px, calc(100% - 32px)); margin: 0 auto 28px; padding-top:
 .trip-banner { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#145e37; }
 .add-trip { margin-top:8px; }
 @media(max-width:680px) {.trip-entry {padding:10px}.trip-entry .card {padding:12px}.trip-banner {align-items:flex-start}}
+
+.trip-collapsed > .card { display:none; }
+.trip-summary { display:none; margin:10px 0 0; font-size:.84rem; color:#226443; line-height:1.5; }
+.trip-collapsed .trip-summary { display:block; }
+.edit-trip { display:none; }
+.trip-collapsed .edit-trip { display:inline-flex; align-items:center; }

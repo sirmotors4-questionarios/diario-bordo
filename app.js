@@ -705,6 +705,148 @@ routeSelect.addEventListener(
 );
 
 
+
+
+// ======================================================
+// HISTÓRICO DO DIA — CONSULTA GET
+// ======================================================
+
+const historyStatus = document.querySelector('#historyStatus');
+const historyResults = document.querySelector('#historyResults');
+const refreshHistoryButton = document.querySelector('#refreshHistory');
+let historyRequestController = null;
+let historyQueryVersion = 0;
+
+function historyField(row, ...names) {
+  for (const name of names) {
+    if (row?.[name] !== undefined && row?.[name] !== null) {
+      return String(row[name]).trim();
+    }
+  }
+  return '';
+}
+
+function historyDate(value) {
+  const raw = String(value ?? '').trim();
+  const number = Number(raw);
+  if (raw && /^\\d+(?:\\.\\d+)?$/.test(raw) && number > 0 && number < 200000) {
+    return new Date(Date.UTC(1899, 11, 30) + Math.floor(number) * 86400000)
+      .toISOString().slice(0, 10);
+  }
+  return raw.slice(0, 10);
+}
+
+function renderHistory(rows) {
+  if (!rows.length) {
+    historyStatus.textContent = 'Não lançado — não há deslocações registadas para esta data e viatura.';
+    historyResults.replaceChildren();
+    return;
+  }
+
+  historyStatus.textContent = `${rows.length} deslocação(ões) encontrada(s).`;
+  historyResults.replaceChildren();
+
+  rows.forEach((row, index) => {
+    const item = document.createElement('article');
+    item.className = 'history-item';
+    const title = document.createElement('strong');
+    title.textContent = `Deslocação ${index + 1} · ${historyField(row, 'Turno', 'turno') || 'Turno não indicado'}`;
+    item.append(title);
+
+    const data = [
+      ['Rota', historyField(row, 'Rota', 'rota')],
+      ['Sentido', historyField(row, 'Sentido', 'sentido')],
+      ['Tipo', historyField(row, 'Tipo_Deslocacao', 'Tipo de Deslocação', 'deslocacao')],
+      ['Hora', [historyField(row, 'Hora', 'Hora_Inicio', 'hora_inicio'), historyField(row, 'Hora_Fim', 'hora_fim')].filter(Boolean).join(' – ')],
+      ['KM inicial', historyField(row, 'Km_Inicial', 'Km Inicial', 'km_inicio')],
+      ['KM final', historyField(row, 'Km_Final', 'Km Final', 'km_fim')],
+      ['Combustível inicial', historyField(row, 'Combustivel_Inicial', 'Nível Combustível Início', 'combustivel_inicio')],
+      ['Combustível final', historyField(row, 'Combustivel_Final', 'Nível Combustível Fim', 'combustivel_fim')],
+      ['Motorista', historyField(row, 'Motorista', 'motorista')],
+      ['Observações', historyField(row, 'Observacoes', 'Observações', 'observacoes')]
+    ];
+
+    const grid = document.createElement('dl');
+    grid.className = 'history-details';
+    data.filter(([, value]) => value !== '').forEach(([label, value]) => {
+      const dt = document.createElement('dt');
+      dt.textContent = label;
+      const dd = document.createElement('dd');
+      dd.textContent = value;
+      grid.append(dt, dd);
+    });
+    item.append(grid);
+    historyResults.append(item);
+  });
+}
+
+async function loadHistory() {
+  historyRequestController?.abort();
+  historyRequestController = null;
+  const version = ++historyQueryVersion;
+
+  const data = form.elements.data.value;
+  const viatura = form.elements.viatura.value;
+  historyResults.replaceChildren();
+  refreshHistoryButton.hidden = !data || !viatura;
+
+  if (!data || !viatura) {
+    historyStatus.textContent = 'Seleccione a data e a viatura para consultar o histórico.';
+    return;
+  }
+
+  if (!config.historyUrl) {
+    historyStatus.textContent = 'Consulta do histórico ainda não configurada.';
+    return;
+  }
+
+  const controller = new AbortController();
+  historyRequestController = controller;
+  const timeout = setTimeout(() => controller.abort(), 25000);
+  historyStatus.textContent = 'A consultar o histórico...';
+
+  try {
+    const url = new URL(config.historyUrl);
+    url.searchParams.set('Data', data);
+    url.searchParams.set('Viatura', viatura);
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      cache: 'no-store',
+      signal: controller.signal
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const result = await response.json();
+    if (!Array.isArray(result)) throw new Error('Formato inválido: esperava-se uma lista JSON.');
+    if (version !== historyQueryVersion) return;
+
+    // Verificação defensiva: mesmo que o fluxo devolva linhas a mais,
+    // não apresentar registos de outra viatura ou data.
+    const matching = result.filter(row =>
+      historyField(row, 'Viatura', 'viatura') === viatura &&
+      historyDate(historyField(row, 'Data', 'data')) === data
+    );
+    renderHistory(matching);
+  } catch (error) {
+    if (version !== historyQueryVersion) return;
+    console.error('Falha ao consultar histórico:', error);
+    historyStatus.textContent = controller.signal.aborted
+      ? 'A consulta demorou demasiado tempo. Tente actualizar.'
+      : 'Não foi possível consultar o histórico. Tente actualizar.';
+    historyResults.replaceChildren();
+  } finally {
+    clearTimeout(timeout);
+    if (historyRequestController === controller) historyRequestController = null;
+  }
+}
+
+form.elements.data.addEventListener('change', loadHistory);
+form.elements.viatura.addEventListener('change', loadHistory);
+refreshHistoryButton.addEventListener('click', loadHistory);
+
 // ======================================================
 // ENVIO DO FORMULÁRIO PARA POWER AUTOMATE
 // ======================================================
@@ -1024,6 +1166,9 @@ form.addEventListener(
       successPanel.hidden =
         false;
 
+      // Reconsultar o histórico após a confirmação de submissão.
+      loadHistory();
+
 
       document.querySelector(
         '#successMessage'
@@ -1130,6 +1275,7 @@ document
 
 
       updateProgress();
+      loadHistory();
 
     }
   );

@@ -855,6 +855,9 @@ const tripsContainer = document.querySelector('#currentTrips');
 const addTripButton = document.querySelector('#addTrip');
 const tripTemplate = tripsContainer.querySelector('.trip-entry').cloneNode(true);
 let nextTripId = 2;
+// Cada cartão conserva o identificador mesmo após uma tentativa falhada.
+function newRegistrationId() { return crypto.randomUUID(); }
+tripsContainer.querySelector('.trip-entry').dataset.registrationId = newRegistrationId();
 
 function tripField(trip, name) {
   return trip.querySelector('[name="' + name + '"]');
@@ -911,6 +914,7 @@ setupTrip(tripsContainer.querySelector('.trip-entry'));
 addTripButton.addEventListener('click', () => {
   const trip = tripTemplate.cloneNode(true);
   trip.dataset.tripId = String(nextTripId++);
+  trip.dataset.registrationId = newRegistrationId();
   trip.querySelectorAll('input,textarea').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
   trip.querySelectorAll('select').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
   tripField(trip, 'rota').innerHTML = routeSelect.innerHTML;
@@ -934,6 +938,7 @@ function tripPayload(trip, base) {
   }
   return {
     ...base,
+    ID_Registo: trip.dataset.registrationId,
     deslocacao: get('tipoDeslocacao'),
     hora_inicio: get('horaSaida'),
     hora_fim: get('horaChegada'),
@@ -988,7 +993,7 @@ form.addEventListener('submit', async event => {
       if (!response.ok) throw new Error('Submissão recusada: HTTP ' + response.status);
       // Só marcar como concluído quando o fluxo confirmar a gravação integral.
       const confirmation = await response.json();
-      if (confirmation?.sucesso !== true || confirmation?.gravados !== registos.length) {
+      if (confirmation?.sucesso !== true || Number(confirmation?.gravados) !== registos.length) {
         throw new Error('O serviço não confirmou a gravação integral. Não volte a enviar antes de verificar os registos no Excel.');
       }
     } else {
@@ -1028,6 +1033,7 @@ document
       form.reset();
       const extras = [...tripsContainer.querySelectorAll('.trip-entry')].slice(1);
       extras.forEach(trip => trip.remove());
+      tripsContainer.querySelector('.trip-entry').dataset.registrationId = newRegistrationId();
       refreshTripLabels();
 
 

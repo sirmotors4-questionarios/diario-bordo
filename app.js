@@ -850,6 +850,7 @@ async function loadHistory() {
   const data = form.elements.data.value;
   const viatura = form.elements.viatura.value;
   historyResults.replaceChildren();
+  availableHistory = [];
   refreshHistoryButton.hidden = !data || !viatura;
 
   if (!data || !viatura) {
@@ -891,8 +892,10 @@ async function loadHistory() {
       historyField(row, 'Viatura', 'viatura') === viatura &&
       historyDate(historyField(row, 'Data', 'data')) === data
     );
+    availableHistory = matching;
     renderHistory(matching);
     populateFromLastTrip(matching);
+    tripsContainer.querySelectorAll('.trip-entry').forEach(trip=>{updateHourSuggestions(trip); seedStartFromPrevious(trip);});
   } catch (error) {
     if (version !== historyQueryVersion) return;
     console.error('Falha ao consultar histórico:', error);
@@ -918,6 +921,7 @@ const tripsContainer = document.querySelector('#currentTrips');
 const addTripButton = document.querySelector('#addTrip');
 const tripTemplate = tripsContainer.querySelector('.trip-entry').cloneNode(true);
 let nextTripId = 2;
+let availableHistory = [];
 // Cada cartão conserva o identificador mesmo após uma tentativa falhada.
 function newRegistrationId() { return crypto.randomUUID(); }
 tripsContainer.querySelector('.trip-entry').dataset.registrationId = newRegistrationId();
@@ -992,10 +996,108 @@ function updateTripType(trip) {
     if (!type || operational) input.value = '';
   }
   if (operational) updateTripDirections(trip);
+  else if (tripField(trip,'horaSaida').value) applyPreviousEnd(trip,tripField(trip,'horaSaida').value,false);
   updateProgress();
 }
 
+// As opções da hora de início incluem finais do dia no histórico e no lote corrente.
+function normalizedHour(raw) {
+  const value = String(raw ?? '').trim();
+  if (/^\\d{1,2}:\\d{2}/.test(value)) return value.slice(0,5).padStart(5,'0');
+  const numeric = Number(value);
+  if (value && Number.isFinite(numeric) && numeric >= 0 && numeric < 1) {
+    const minutes = Math.round(numeric * 1440) % 1440;
+    return String(Math.floor(minutes/60)).padStart(2,'0') + ':' + String(minutes%60).padStart(2,'0');
+  }
+  return '';
+}
+function originCandidates(trip) {
+  const current = [...tripsContainer.querySelectorAll('.trip-entry')];
+  const currentBefore = current.slice(0, current.indexOf(trip)).map(node => ({
+    time: tripField(node,'horaChegada').value,
+    km: tripField(node,'kmFinal').value,
+    fuel: tripField(node,'nivelCombustivelFinal').value,
+    destination: tripField(node,'destino').value,
+    route: tripField(node,'rota').value,
+    source: 'corrente'
+  }));
+  const historic = availableHistory.map(row => ({
+    time: historyField(row,'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim'),
+    km: historyField(row,'Km_Final','Km Final','km_fim'),
+    fuel: historyField(row,'Combustivel_Final','Nível Combustível Fim','combustivel_fim'),
+    destination: historyField(row,'Destino','destino'),
+    route: historyField(row,'Rota','rota'),
+    source: 'histórico',
+    nr: Number(historyField(row,'Nr','nr')) || 0
+  }));
+  return [...historic, ...currentBefore].filter(c => normalizedHour(c.time));
+}
+function lastCandidate(trip) {
+  const options = originCandidates(trip);
+  const currents = options.filter(o=>o.source==='corrente');
+  if (currents.length) return currents.at(-1);
+  return options.filter(o=>o.source==='histórico').sort((a,b)=> (a.nr && b.nr) ? b.nr-a.nr : normalizedHour(b.time).localeCompare(normalizedHour(a.time)))[0];
+}
+function updateHourSuggestions(trip) {
+  const chooser = trip.querySelector('.start-time-suggestions');
+  if (!chooser) return;
+  const currentValue = chooser.value;
+  chooser.replaceChildren(new Option('Sugestões: hora de fim anterior',''));
+  const seen = new Set();
+  for(const candidate of [...originCandidates(trip)].reverse()) {
+    const time=normalizedHour(candidate.time);
+    if (seen.has(time)) continue;
+    seen.add(time);
+    chooser.add(new Option(time + ' · ' + candidate.source, time));
+  }
+  chooser.value = [...chooser.options].some(o => o.value===currentValue) ? currentValue : '';
+}
+function applyPreviousEnd(trip, time, overwrite = true) {
+  const wanted=normalizedHour(time);
+  if(!wanted) return;
+  const matches=originCandidates(trip).filter(c => normalizedHour(c.time)===wanted);
+  const selected=matches.at(-1);
+  if(!selected) return;
+  const fill = (field, value) => {
+    const input=tripField(trip,field);
+    if(input && value !== undefined && value !== null && String(value).trim() && (overwrite || !input.value))
+      input.value=String(value).trim();
+  };
+  fill('kmInicial',selected.km);
+  fill('nivelCombustivelInicial',selected.fuel);
+  if(!isOperationalTrip(trip)) fill('origem',selected.destination);
+  updateProgress();
+}
+function onStartTimeChanged(trip) {
+  updateHourSuggestions(trip);
+  const time=tripField(trip,'horaSaida').value;
+  applyPreviousEnd(trip,time,true);
+}
+function seedStartFromPrevious(trip) {
+  const input=tripField(trip,'horaSaida');
+  if(input.value) return;
+  const previous=lastCandidate(trip);
+  if(!previous) return;
+  input.value=normalizedHour(previous.time);
+  applyPreviousEnd(trip,input.value,false);
+  updateHourSuggestions(trip);
+}
+
 function setupTrip(trip) {
+  const hour=tripField(trip,'horaSaida');
+  const suggestions=document.createElement('select');
+  suggestions.type='button';
+  suggestions.className='start-time-suggestions';
+  suggestions.setAttribute('aria-label','Sugerir hora de início a partir dos deslocamentos anteriores');
+  suggestions.style.marginTop='6px';
+  suggestions.addEventListener('change',()=>{
+    if(!suggestions.value) return;
+    hour.value=suggestions.value;
+    onStartTimeChanged(trip);
+  });
+  hour.closest('label').append(suggestions);
+  hour.addEventListener('change',()=>onStartTimeChanged(trip));
+  hour.addEventListener('focus',()=>updateHourSuggestions(trip));
   tripField(trip,'tipoDeslocacao').addEventListener('change', () => updateTripType(trip));
   const banner = trip.querySelector('.trip-banner');
   const edit = document.createElement('button');
@@ -1066,6 +1168,7 @@ addTripButton.addEventListener('click', () => {
   setupTrip(trip);
   tripsContainer.append(trip);
   updateTripType(trip);
+  seedStartFromPrevious(trip);
   refreshTripLabels();
   updateProgress();
   document.querySelector('#formHint').textContent =

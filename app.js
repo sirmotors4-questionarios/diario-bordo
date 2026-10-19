@@ -1281,6 +1281,10 @@ addTripButton.addEventListener('click', () => {
   // A nova deslocação começa sem valores; Data/Viatura/Equipa permanecem.
   trip.querySelectorAll('input, textarea').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
   trip.querySelectorAll('select').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
+  // O modelo HTML foi capturado antes do carregamento das listas mestre.
+  // Copiar as opções já carregadas do formulário activo, não do modelo inicial.
+  tripField(trip, 'tipoDeslocacao').innerHTML =
+    tripField(tripsContainer.querySelector('.trip-entry'), 'tipoDeslocacao').innerHTML;
   tripField(trip, 'rota').innerHTML = routeSelect.innerHTML;
   tripField(trip, 'sentido').removeAttribute('id');
   tripField(trip, 'sentido').disabled = true;

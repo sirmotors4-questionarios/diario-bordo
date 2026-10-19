@@ -753,15 +753,24 @@ function setSelectIfValid(select, candidates) {
   return false;
 }
 
-function latestHistoryRow(rows) {
-  // Nr global ordena os lançamentos. Se não existir, usar hora de início/fim.
-  return [...rows].sort((a,b) => {
+function historyStartMinutes(row) {
+  const value = normalizedHour(historyField(row, 'Hora_Inicio', 'Hora_Saida', 'Hora Saída', 'hora_inicio'));
+  if (!value) return Number.POSITIVE_INFINITY;
+  const [h, m] = value.split(':').map(Number);
+  return h * 60 + m;
+}
+function chronologicalHistory(rows) {
+  return [...rows].sort((a, b) => {
+    const delta = historyStartMinutes(a) - historyStartMinutes(b);
+    if (delta !== 0) return delta;
     const na = Number(historyField(a, 'Nr', 'nr'));
     const nb = Number(historyField(b, 'Nr', 'nr'));
-    if (Number.isFinite(na) && Number.isFinite(nb) && na > 0 && nb > 0) return nb-na;
-    return historyField(b, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio')
-      .localeCompare(historyField(a, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio'));
-  })[0];
+    return (Number.isFinite(na) ? na : 0) - (Number.isFinite(nb) ? nb : 0);
+  });
+}
+
+function latestHistoryRow(rows) {
+  return chronologicalHistory(rows).at(-1);
 }
 
 function populateFromLastTrip(rows) {
@@ -820,7 +829,7 @@ function renderHistory(rows) {
   historyStatus.textContent = `${rows.length} deslocação(ões) encontrada(s).`;
   historyResults.replaceChildren();
 
-  rows.forEach((row, index) => {
+  chronologicalHistory(rows).forEach((row, index) => {
     const item = document.createElement('article');
     item.className = 'history-item';
     const title = document.createElement('strong');
@@ -920,9 +929,9 @@ async function loadHistory() {
       historyField(row, 'Viatura', 'viatura') === viatura &&
       historyDate(historyField(row, 'Data', 'data')) === data
     );
-    availableHistory = matching;
-    renderHistory(matching);
-    populateFromLastTrip(matching);
+    availableHistory = chronologicalHistory(matching);
+    renderHistory(availableHistory);
+    populateFromLastTrip(availableHistory);
     tripsContainer.querySelectorAll('.trip-entry').forEach(trip=>{updateHourSuggestions(trip); seedStartFromPrevious(trip);});
   } catch (error) {
     if (version !== historyQueryVersion) return;

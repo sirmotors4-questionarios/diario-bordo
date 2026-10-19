@@ -797,6 +797,19 @@ function populateFromLastTrip(rows) {
   updateProgress();
 }
 
+function historyEndpoints(row) {
+  const origem = historyField(row, 'Origem', 'origem');
+  const destino = historyField(row, 'Destino', 'destino');
+  const sentido = historyField(row, 'Sentido', 'sentido');
+  // Nos percursos operacionais, Origem/Destino podem estar vazios no Excel.
+  // Recuperá-los do Sentido, sem partir nomes como Coca-Cola.
+  const parts = sentido.split(/\\s+(?:-|–|—|→)\\s+/).map(v => v.trim()).filter(Boolean);
+  return {
+    origem: origem || (parts.length === 2 ? parts[0] : ''),
+    destino: destino || (parts.length === 2 ? parts[1] : '')
+  };
+}
+
 function renderHistory(rows) {
   if (!rows.length) {
     historyStatus.textContent = 'Não lançado — não há deslocações registadas para esta data e viatura.';
@@ -814,11 +827,12 @@ function renderHistory(rows) {
     title.textContent = `Deslocação ${index + 1} · ${historyField(row, 'Turno', 'turno') || 'Turno não indicado'}`;
     item.append(title);
 
+    const pontos = historyEndpoints(row);
     const data = [
       ['Rota', historyField(row, 'Rota', 'rota')],
       ['Sentido', historyField(row, 'Sentido', 'sentido')],
-      ['Origem', historyField(row, 'Origem', 'origem')],
-      ['Destino', historyField(row, 'Destino', 'destino')],
+      ['Origem', pontos.origem],
+      ['Destino', pontos.destino],
       ['Tipo', historyField(row, 'Tipo_Deslocacao', 'Tipo de Deslocação', 'deslocacao')],
       ['Hora de início', historyField(row, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio')],
       ['Hora de fim', historyField(row, 'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim')],

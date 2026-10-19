@@ -1047,7 +1047,7 @@ function finalDestination(value) {
   const raw = String(value ?? '').trim();
   // Percursos: "Matola Gare - Museu", "Matola Gare – Museu", "Matola Gare → Museu".
   // Exigir espaços em torno do hífen para preservar topónimos como "Coca-Cola".
-  const parts = raw.split(/\\s+(?:-|–|—|→)\\s+/);
+  const parts = raw.split(/\s+(?:-|–|—|→)\s+/);
   return (parts.length > 1 ? parts[1] : raw).trim();
 }
 function originCandidates(trip) {

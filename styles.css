@@ -128,3 +128,14 @@ footer { width: min(980px, calc(100% - 32px)); margin: 0 auto 28px; padding-top:
 @media (max-width: 460px) {
   .trip-details-grid { grid-template-columns: 1fr; }
 }
+
+/* Relógio de Hora de Fim: o picker inicia na hora de início, sem preencher o campo. */
+.end-time-picker-wrap { display:block; position:relative; min-width:0; }
+.end-time-picker-wrap > input[name="horaChegada"] { padding-right:54px; }
+.end-time-picker-wrap > input[name="horaChegada"]::-webkit-calendar-picker-indicator { opacity:0; pointer-events:none; }
+.end-time-picker-button { position:absolute; right:5px; top:5px; width:40px; min-height:38px; padding:0; border-radius:9px; background:#eaf3fc; color:var(--blue); font-size:25px; line-height:1; }
+.end-time-picker-button:hover, .end-time-picker-button:focus-visible { background:#d8ebfb; }
+.end-time-picker-popover { position:absolute; z-index:15; right:0; top:calc(100% + 5px); width:min(240px, 100%); min-width:190px; border:1px solid var(--line); border-radius:12px; padding:12px; background:white; box-shadow:0 12px 28px rgba(8,47,87,.18); }
+.end-time-picker-popover[hidden] { display:none !important; }
+.end-time-picker-popover small { display:block; margin-bottom:7px; font-weight:700; color:var(--navy); }
+.end-time-picker-popover input[type="time"] { width:100%; }

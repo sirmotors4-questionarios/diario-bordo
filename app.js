@@ -803,7 +803,7 @@ function historyEndpoints(row) {
   const sentido = historyField(row, 'Sentido', 'sentido');
   // Nos percursos operacionais, Origem/Destino podem estar vazios no Excel.
   // Recuperá-los do Sentido, sem partir nomes como Coca-Cola.
-  const parts = sentido.split(/\\s+(?:-|–|—|→)\\s+/).map(v => v.trim()).filter(Boolean);
+  const parts = sentido.split(/\s+(?:-|–|—|→)\s+/).map(v => v.trim()).filter(Boolean);
   return {
     origem: origem || (parts.length === 2 ? parts[0] : ''),
     destino: destino || (parts.length === 2 ? parts[1] : '')
@@ -827,13 +827,17 @@ function renderHistory(rows) {
     title.textContent = `Deslocação ${index + 1} · ${historyField(row, 'Turno', 'turno') || 'Turno não indicado'}`;
     item.append(title);
 
+    const tipo = historyField(row, 'Tipo_Deslocacao', 'Tipo de Deslocação', 'deslocacao');
+    const operacional = /\\boperacional\\b/i.test(tipo) && !/n[aã]o.operacional/i.test(tipo);
     const pontos = historyEndpoints(row);
     const data = [
-      ['Rota', historyField(row, 'Rota', 'rota')],
-      ['Sentido', historyField(row, 'Sentido', 'sentido')],
+      ...(operacional ? [
+        ['Rota', historyField(row, 'Rota', 'rota')],
+        ['Sentido', historyField(row, 'Sentido', 'sentido')]
+      ] : []),
       ['Origem', pontos.origem],
       ['Destino', pontos.destino],
-      ['Tipo', historyField(row, 'Tipo_Deslocacao', 'Tipo de Deslocação', 'deslocacao')],
+      ['Tipo', tipo],
       ['Hora de início', historyField(row, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio')],
       ['Hora de fim', historyField(row, 'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim')],
       ['KM inicial', historyField(row, 'Km_Inicial', 'Km Inicial', 'km_inicio')],

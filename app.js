@@ -1017,7 +1017,7 @@ function originCandidates(trip) {
     time: tripField(node,'horaChegada').value,
     km: tripField(node,'kmFinal').value,
     fuel: tripField(node,'nivelCombustivelFinal').value,
-    destination: tripField(node,'destino').value,
+    destination: tripField(node,'destino').value || tripField(node,'sentido').value.split('→').at(-1).trim(),
     route: tripField(node,'rota').value,
     source: 'corrente'
   }));
@@ -1025,7 +1025,7 @@ function originCandidates(trip) {
     time: historyField(row,'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim'),
     km: historyField(row,'Km_Final','Km Final','km_fim'),
     fuel: historyField(row,'Combustivel_Final','Nível Combustível Fim','combustivel_fim'),
-    destination: historyField(row,'Destino','destino'),
+    destination: historyField(row,'Destino','destino') || historyField(row,'Sentido','sentido').split('→').at(-1).trim(),
     route: historyField(row,'Rota','rota'),
     source: 'histórico',
     nr: Number(historyField(row,'Nr','nr')) || 0

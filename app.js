@@ -1134,7 +1134,55 @@ function seedStartFromPrevious(trip) {
   updateHourSuggestions(trip);
 }
 
+function setupEndTimePicker(trip) {
+  const end = tripField(trip, 'horaChegada');
+  const start = tripField(trip, 'horaSaida');
+  const wrapper = document.createElement('span');
+  wrapper.className = 'end-time-picker-wrap';
+  end.parentNode.insertBefore(wrapper, end);
+  wrapper.append(end);
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'end-time-picker-button';
+  button.setAttribute('aria-label', 'Escolher hora de fim a partir da hora de início');
+  button.title = 'Abrir relógio na hora de início';
+  button.textContent = '◷';
+  wrapper.append(button);
+
+  const popover = document.createElement('span');
+  popover.className = 'end-time-picker-popover';
+  popover.hidden = true;
+  const title = document.createElement('small');
+  title.textContent = 'Escolher hora de fim';
+  const picker = document.createElement('input');
+  picker.type = 'time';
+  picker.setAttribute('aria-label', 'Hora de fim no relógio');
+  popover.append(title, picker);
+  wrapper.append(popover);
+
+  const close = () => { popover.hidden = true; };
+  button.addEventListener('click', () => {
+    // Preparar o selector, sem alterar o valor já gravado no campo Hora de fim.
+    picker.value = end.value || start.value || '';
+    popover.hidden = false;
+    try { picker.showPicker?.(); } catch (_) { picker.focus(); }
+  });
+  picker.addEventListener('change', () => {
+    if (picker.value) {
+      end.value = picker.value;
+      end.dispatchEvent(new Event('input', { bubbles: true }));
+      end.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    close();
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!wrapper.contains(event.target)) close();
+  });
+}
+
 function setupTrip(trip) {
+  setupEndTimePicker(trip);
   const hour=tripField(trip,'horaSaida');
   const suggestions=document.createElement('select');
   suggestions.type='button';

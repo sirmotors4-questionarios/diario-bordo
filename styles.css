@@ -116,3 +116,6 @@ footer { width: min(980px, calc(100% - 32px)); margin: 0 auto 28px; padding-top:
 .trip-collapsed .trip-summary { display:block; }
 .edit-trip { display:none; }
 .trip-collapsed .edit-trip { display:inline-flex; align-items:center; }
+
+/* Alternância de percurso conforme o tipo de deslocação */
+.operational-fields[hidden], .nonoperational-fields[hidden] { display:none !important; }

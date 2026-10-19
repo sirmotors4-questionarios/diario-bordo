@@ -855,9 +855,12 @@ async function loadHistory() {
   const context = data + '|' + viatura;
   if (context !== lastHistoryContext) {
     clearAutoValues();
+    // O cartão ainda não lançado da nova selecção pode servir de origem apenas após preenchimento.
+    if (tripsContainer.children.length === 1) tripsContainer.firstElementChild.dataset.contextKey = context;
     lastHistoryContext = context;
   }
   availableHistory = [];
+  tripsContainer.querySelectorAll('.trip-entry').forEach(updateHourSuggestions);
   refreshHistoryButton.hidden = !data || !viatura;
 
   if (!data || !viatura) {
@@ -931,6 +934,7 @@ let nextTripId = 2;
 let availableHistory = [];
 let lastHistoryContext = '';
 const autoFilled = new WeakMap();
+function currentContext() { return form.elements.data.value + '|' + form.elements.viatura.value; }
 function setAutoValue(field, value) {
   if (!field || !value || field.value) return;
   field.value = value;
@@ -1027,7 +1031,7 @@ function updateTripType(trip) {
 // As opções da hora de início incluem finais do dia no histórico e no lote corrente.
 function normalizedHour(raw) {
   const value = String(raw ?? '').trim();
-  const time = value.match(/^(\\d{1,2}):(\\d{2})(?::\\d{2})?$/);
+  const time = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (time) {
     const h = Number(time[1]), m = Number(time[2]);
     return h < 24 && m < 60 ? String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') : '';
@@ -1041,7 +1045,7 @@ function normalizedHour(raw) {
 }
 function originCandidates(trip) {
   const current = [...tripsContainer.querySelectorAll('.trip-entry')];
-  const currentBefore = current.slice(0, current.indexOf(trip)).map(node => ({
+  const currentBefore = current.slice(0, current.indexOf(trip)).filter(node => node.dataset.contextKey === currentContext()).map(node => ({
     time: tripField(node,'horaChegada').value,
     km: tripField(node,'kmFinal').value,
     fuel: tripField(node,'nivelCombustivelFinal').value,
@@ -1159,6 +1163,7 @@ function refreshTripLabels() {
 }
 
 setupTrip(tripsContainer.querySelector('.trip-entry'));
+tripsContainer.querySelector('.trip-entry').dataset.contextKey = currentContext();
 updateTripType(tripsContainer.querySelector('.trip-entry'));
 
 addTripButton.addEventListener('click', () => {
@@ -1187,6 +1192,7 @@ addTripButton.addEventListener('click', () => {
 
   const trip = tripTemplate.cloneNode(true);
   trip.dataset.tripId = String(nextTripId++);
+  trip.dataset.contextKey = currentContext();
   trip.dataset.registrationId = newRegistrationId();
   // A nova deslocação começa sem valores; Data/Viatura/Equipa permanecem.
   trip.querySelectorAll('input, textarea').forEach(field => { field.value = ''; field.classList.remove('invalid'); });
@@ -1315,6 +1321,7 @@ document
       const firstTrip = tripsContainer.querySelector('.trip-entry');
       firstTrip.classList.remove('trip-collapsed');
       firstTrip.dataset.registrationId = newRegistrationId();
+      firstTrip.dataset.contextKey = currentContext();
       updateTripType(firstTrip);
       refreshTripLabels();
 

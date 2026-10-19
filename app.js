@@ -1119,6 +1119,7 @@ function applyPreviousEnd(trip, time, overwrite = true) {
   fillFromCandidate(trip, selected, overwrite);
 }
 function onStartTimeChanged(trip) {
+  resetEndTimeAfterStartChange(trip);
   updateHourSuggestions(trip);
   const time=tripField(trip,'horaSaida').value;
   applyPreviousEnd(trip,time,true);
@@ -1181,6 +1182,18 @@ function setupEndTimePicker(trip) {
   });
 }
 
+function resetEndTimeAfterStartChange(trip) {
+  const end = tripField(trip, 'horaChegada');
+  if (end.value) {
+    end.value = '';
+    autoFilled.delete(end);
+    end.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  const picker = trip.querySelector('.end-time-picker-popover input[type="time"]');
+  if (picker) picker.value = '';
+  const popover = trip.querySelector('.end-time-picker-popover');
+  if (popover) popover.hidden = true;
+}
 function setupTrip(trip) {
   setupEndTimePicker(trip);
   const hour=tripField(trip,'horaSaida');
@@ -1193,7 +1206,9 @@ function setupTrip(trip) {
     if (suggestions.value === '') return;
     const selected = suggestions.candidates?.[Number(suggestions.value)];
     if (!selected) return;
-    hour.value = normalizedHour(selected.time);
+    const newHour = normalizedHour(selected.time);
+    if (hour.value !== newHour) resetEndTimeAfterStartChange(trip);
+    hour.value = newHour;
     autoFilled.set(hour, hour.value);
     fillFromCandidate(trip, selected, true);
   });

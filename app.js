@@ -1030,10 +1030,7 @@ function updateTripType(trip) {
 
 // As opções da hora de início incluem finais do dia no histórico e no lote corrente.
 function normalizedHour(raw) {
-  const rawValue = String(raw ?? '').trim();
-  // Quando chega um intervalo "06:00 - 07:15", usar somente a hora final.
-  const parts = rawValue.split(/\\s*[-–—]\\s*/);
-  const value = parts.length > 1 ? parts[1].trim() : rawValue;
+  const value = String(raw ?? '').trim();
   const time = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (time) {
     const h = Number(time[1]), m = Number(time[2]);
@@ -1046,13 +1043,20 @@ function normalizedHour(raw) {
   }
   return '';
 }
+function finalDestination(value) {
+  const raw = String(value ?? '').trim();
+  // Percursos: "Matola Gare - Museu", "Matola Gare – Museu", "Matola Gare → Museu".
+  // Exigir espaços em torno do hífen para preservar topónimos como "Coca-Cola".
+  const parts = raw.split(/\\s+(?:-|–|—|→)\\s+/);
+  return (parts.length > 1 ? parts[1] : raw).trim();
+}
 function originCandidates(trip) {
   const current = [...tripsContainer.querySelectorAll('.trip-entry')];
   const currentBefore = current.slice(0, current.indexOf(trip)).filter(node => node.dataset.contextKey === currentContext()).map(node => ({
     time: tripField(node,'horaChegada').value,
     km: tripField(node,'kmFinal').value,
     fuel: tripField(node,'nivelCombustivelFinal').value,
-    destination: tripField(node,'destino').value || tripField(node,'sentido').value.split('→').at(-1).trim(),
+    destination: finalDestination(tripField(node,'destino').value || tripField(node,'sentido').value),
     route: tripField(node,'rota').value,
     source: 'corrente'
   }));
@@ -1060,7 +1064,7 @@ function originCandidates(trip) {
     time: historyField(row,'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim'),
     km: historyField(row,'Km_Final','Km Final','km_fim'),
     fuel: historyField(row,'Combustivel_Final','Nível Combustível Fim','combustivel_fim'),
-    destination: historyField(row,'Destino','destino') || historyField(row,'Sentido','sentido').split('→').at(-1).trim(),
+    destination: finalDestination(historyField(row,'Destino','destino') || historyField(row,'Sentido','sentido')),
     route: historyField(row,'Rota','rota'),
     source: 'histórico',
     nr: Number(historyField(row,'Nr','nr')) || 0

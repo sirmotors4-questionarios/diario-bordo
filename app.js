@@ -144,6 +144,7 @@ async function loadMasterData() {
       item => item.nome || item,
       item => item.nome || item
     );
+    tripsContainer.querySelectorAll('.trip-entry').forEach(trip => updateTripType(trip));
 
 
     const updated =
@@ -784,7 +785,7 @@ function populateFromLastTrip(rows) {
   if (chosen) {
     for (const trip of document.querySelectorAll('#currentTrips .trip-entry')) {
       const routeField = tripField(trip,'rota');
-      if (!routeField.value) {
+      if (!routeField.value && isOperationalTrip(trip)) {
         routeField.value = chosen.value;
         updateTripDirections(trip);
         setSelectIfValid(tripField(trip,'sentido'), [historyField(last,'Sentido','sentido')]);
@@ -814,6 +815,8 @@ function renderHistory(rows) {
     const data = [
       ['Rota', historyField(row, 'Rota', 'rota')],
       ['Sentido', historyField(row, 'Sentido', 'sentido')],
+      ['Origem', historyField(row, 'Origem', 'origem')],
+      ['Destino', historyField(row, 'Destino', 'destino')],
       ['Tipo', historyField(row, 'Tipo_Deslocacao', 'Tipo de Deslocação', 'deslocacao')],
       ['Hora de início', historyField(row, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio')],
       ['Hora de fim', historyField(row, 'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim')],
@@ -964,7 +967,36 @@ function refreshTripSummary(trip) {
     'KM ' + get('kmInicial') + '–' + get('kmFinal')].filter(Boolean).join(' · ');
 }
 
+function isOperationalTrip(trip) {
+  const select = tripField(trip, 'tipoDeslocacao');
+  const option = select.selectedOptions[0];
+  const text = [select.value, option?.textContent].join(' ').toLowerCase();
+  return /\boperacional\b/.test(text) && !/n[aã]o.operacional/.test(text);
+}
+
+function updateTripType(trip) {
+  const type = tripField(trip, 'tipoDeslocacao').value;
+  const operational = type && isOperationalTrip(trip);
+  for (const label of trip.querySelectorAll('.operational-fields')) {
+    label.hidden = !operational;
+    const select = label.querySelector('select');
+    select.disabled = !operational || (select.name === 'sentido' && !tripField(trip,'rota').value);
+    select.required = Boolean(operational);
+    if (!operational) select.value = '';
+  }
+  for (const label of trip.querySelectorAll('.nonoperational-fields')) {
+    label.hidden = !type || operational;
+    const input = label.querySelector('input');
+    input.disabled = !type || operational;
+    input.required = Boolean(type && !operational);
+    if (!type || operational) input.value = '';
+  }
+  if (operational) updateTripDirections(trip);
+  updateProgress();
+}
+
 function setupTrip(trip) {
+  tripField(trip,'tipoDeslocacao').addEventListener('change', () => updateTripType(trip));
   const banner = trip.querySelector('.trip-banner');
   const edit = document.createElement('button');
   edit.type = 'button';
@@ -996,6 +1028,7 @@ function refreshTripLabels() {
 }
 
 setupTrip(tripsContainer.querySelector('.trip-entry'));
+updateTripType(tripsContainer.querySelector('.trip-entry'));
 
 addTripButton.addEventListener('click', () => {
   const active = tripsContainer.querySelector('.trip-entry:not(.trip-collapsed)')
@@ -1032,7 +1065,7 @@ addTripButton.addEventListener('click', () => {
   tripField(trip, 'sentido').disabled = true;
   setupTrip(trip);
   tripsContainer.append(trip);
-  updateTripDirections(trip);
+  updateTripType(trip);
   refreshTripLabels();
   updateProgress();
   document.querySelector('#formHint').textContent =
@@ -1054,8 +1087,10 @@ function tripPayload(trip, base) {
     deslocacao: get('tipoDeslocacao'),
     hora_inicio: get('horaSaida'),
     hora_fim: get('horaChegada'),
-    rota: get('rota'),
-    sentido: get('sentido'),
+    rota: isOperationalTrip(trip) ? get('rota') : '',
+    sentido: isOperationalTrip(trip) ? get('sentido') : '',
+    origem: isOperationalTrip(trip) ? '' : get('origem'),
+    destino: isOperationalTrip(trip) ? '' : get('destino'),
     km_inicio: kmStart,
     km_fim: kmEnd,
     combustivel_inicio: Number(get('nivelCombustivelInicial')),
@@ -1148,6 +1183,7 @@ document
       const firstTrip = tripsContainer.querySelector('.trip-entry');
       firstTrip.classList.remove('trip-collapsed');
       firstTrip.dataset.registrationId = newRegistrationId();
+      updateTripType(firstTrip);
       refreshTripLabels();
 
 

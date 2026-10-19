@@ -746,6 +746,7 @@ function setSelectIfValid(select, candidates) {
     const match = options.find(opt => opt.value.trim() === value || opt.textContent.trim() === value);
     if (match) {
       select.value = match.value;
+      autoFilled.set(select, match.value);
       return true;
     }
   }
@@ -787,6 +788,7 @@ function populateFromLastTrip(rows) {
       const routeField = tripField(trip,'rota');
       if (!routeField.value && isOperationalTrip(trip)) {
         routeField.value = chosen.value;
+        autoFilled.set(routeField, routeField.value);
         updateTripDirections(trip);
         setSelectIfValid(tripField(trip,'sentido'), [historyField(last,'Sentido','sentido')]);
       }
@@ -850,6 +852,11 @@ async function loadHistory() {
   const data = form.elements.data.value;
   const viatura = form.elements.viatura.value;
   historyResults.replaceChildren();
+  const context = data + '|' + viatura;
+  if (context !== lastHistoryContext) {
+    clearAutoValues();
+    lastHistoryContext = context;
+  }
   availableHistory = [];
   refreshHistoryButton.hidden = !data || !viatura;
 
@@ -922,6 +929,23 @@ const addTripButton = document.querySelector('#addTrip');
 const tripTemplate = tripsContainer.querySelector('.trip-entry').cloneNode(true);
 let nextTripId = 2;
 let availableHistory = [];
+let lastHistoryContext = '';
+const autoFilled = new WeakMap();
+function setAutoValue(field, value) {
+  if (!field || !value || field.value) return;
+  field.value = value;
+  autoFilled.set(field, value);
+}
+function clearAutoValues() {
+  for (const field of form.querySelectorAll('input,select')) {
+    const previous=autoFilled.get(field);
+    if (previous !== undefined) {
+      if (field.value === previous) field.value='';
+      autoFilled.delete(field);
+    }
+  }
+}
+
 // Cada cartão conserva o identificador mesmo após uma tentativa falhada.
 function newRegistrationId() { return crypto.randomUUID(); }
 tripsContainer.querySelector('.trip-entry').dataset.registrationId = newRegistrationId();
@@ -1003,10 +1027,14 @@ function updateTripType(trip) {
 // As opções da hora de início incluem finais do dia no histórico e no lote corrente.
 function normalizedHour(raw) {
   const value = String(raw ?? '').trim();
-  if (/^\\d{1,2}:\\d{2}/.test(value)) return value.slice(0,5).padStart(5,'0');
-  const numeric = Number(value);
-  if (value && Number.isFinite(numeric) && numeric >= 0 && numeric < 1) {
-    const minutes = Math.round(numeric * 1440) % 1440;
+  const time = value.match(/^(\\d{1,2}):(\\d{2})(?::\\d{2})?$/);
+  if (time) {
+    const h = Number(time[1]), m = Number(time[2]);
+    return h < 24 && m < 60 ? String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') : '';
+  }
+  const number = Number(value);
+  if (value && Number.isFinite(number) && number >= 0 && number < 1) {
+    const minutes = Math.round(number * 1440) % 1440;
     return String(Math.floor(minutes/60)).padStart(2,'0') + ':' + String(minutes%60).padStart(2,'0');
   }
   return '';
@@ -1056,12 +1084,12 @@ function applyPreviousEnd(trip, time, overwrite = true) {
   const wanted=normalizedHour(time);
   if(!wanted) return;
   const matches=originCandidates(trip).filter(c => normalizedHour(c.time)===wanted);
-  const selected=matches.at(-1);
+  const selected=matches.filter(c=>c.source==='corrente').at(-1) || matches.filter(c=>c.source==='histórico').sort((a,b)=>b.nr-a.nr)[0];
   if(!selected) return;
   const fill = (field, value) => {
     const input=tripField(trip,field);
     if(input && value !== undefined && value !== null && String(value).trim() && (overwrite || !input.value))
-      input.value=String(value).trim();
+      { input.value=String(value).trim(); autoFilled.set(input,input.value); }
   };
   fill('kmInicial',selected.km);
   fill('nivelCombustivelInicial',selected.fuel);
@@ -1079,6 +1107,7 @@ function seedStartFromPrevious(trip) {
   const previous=lastCandidate(trip);
   if(!previous) return;
   input.value=normalizedHour(previous.time);
+  autoFilled.set(input,input.value);
   applyPreviousEnd(trip,input.value,false);
   updateHourSuggestions(trip);
 }
@@ -1096,7 +1125,7 @@ function setupTrip(trip) {
     onStartTimeChanged(trip);
   });
   hour.closest('label').append(suggestions);
-  hour.addEventListener('change',()=>onStartTimeChanged(trip));
+  hour.addEventListener('change',()=>{autoFilled.delete(hour);onStartTimeChanged(trip);});
   hour.addEventListener('focus',()=>updateHourSuggestions(trip));
   tripField(trip,'tipoDeslocacao').addEventListener('change', () => updateTripType(trip));
   const banner = trip.querySelector('.trip-banner');

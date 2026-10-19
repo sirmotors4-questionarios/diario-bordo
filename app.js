@@ -815,6 +815,8 @@ function renderHistory(rows) {
     const data = [
       ['Rota', historyField(row, 'Rota', 'rota')],
       ['Sentido', historyField(row, 'Sentido', 'sentido')],
+      ['Origem', historyField(row, 'Origem', 'origem')],
+      ['Destino', historyField(row, 'Destino', 'destino')],
       ['Tipo', historyField(row, 'Tipo_Deslocacao', 'Tipo de Deslocação', 'deslocacao')],
       ['Hora de início', historyField(row, 'Hora_Inicio','Hora_Saida','Hora Saída','hora_inicio')],
       ['Hora de fim', historyField(row, 'Hora_Fim','Hora_Chegada','Hora Chegada','hora_fim')],
@@ -969,7 +971,7 @@ function isOperationalTrip(trip) {
   const select = tripField(trip, 'tipoDeslocacao');
   const option = select.selectedOptions[0];
   const text = [select.value, option?.textContent].join(' ').toLowerCase();
-  return /\\boperacional\\b/.test(text) && !/n[aã]o.operacional/.test(text);
+  return /\boperacional\b/.test(text) && !/n[aã]o.operacional/.test(text);
 }
 
 function updateTripType(trip) {

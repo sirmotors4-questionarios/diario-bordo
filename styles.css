@@ -119,3 +119,12 @@ footer { width: min(980px, calc(100% - 32px)); margin: 0 auto 28px; padding-top:
 
 /* Alternância de percurso conforme o tipo de deslocação */
 .operational-fields[hidden], .nonoperational-fields[hidden] { display:none !important; }
+
+/* Formulário de deslocações: campos relacionados alinhados em pares */
+.trip-details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.trip-details-grid > label { min-width: 0; }
+.trip-details-grid > label.wide { grid-column: 1 / -1; }
+.trip-details-grid .start-time-suggestions { width: 100%; }
+@media (max-width: 460px) {
+  .trip-details-grid { grid-template-columns: 1fr; }
+}

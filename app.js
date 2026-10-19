@@ -1080,32 +1080,43 @@ function lastCandidate(trip) {
 function updateHourSuggestions(trip) {
   const chooser = trip.querySelector('.start-time-suggestions');
   if (!chooser) return;
-  const currentValue = chooser.value;
-  chooser.replaceChildren(new Option('Sugestões: hora de fim anterior',''));
-  const seen = new Set();
-  for(const candidate of [...originCandidates(trip)].reverse()) {
-    const time=normalizedHour(candidate.time);
-    if (seen.has(time)) continue;
-    seen.add(time);
-    chooser.add(new Option(time + ' · ' + candidate.source, time));
-  }
-  chooser.value = [...chooser.options].some(o => o.value===currentValue) ? currentValue : '';
+  const previous = chooser.value;
+  const candidates = originCandidates(trip);
+  // Uma opção por deslocamento, incluindo horas repetidas: não perder registos.
+  chooser.candidates = candidates;
+  chooser.replaceChildren(new Option('Sugestões: hora de fim anterior', ''));
+  candidates.forEach((candidate, index) => {
+    const time = normalizedHour(candidate.time);
+    const label = time + ' · ' + (candidate.source === 'corrente'
+      ? 'Deslocação ' + (index - availableHistory.length + 1)
+      : 'Histórico ' + (candidate.nr || index + 1));
+    chooser.add(new Option(label, String(index)));
+  });
+  chooser.value = previous && [...chooser.options].some(o=>o.value===previous) ? previous : '';
 }
-function applyPreviousEnd(trip, time, overwrite = true) {
-  const wanted=normalizedHour(time);
-  if(!wanted) return;
-  const matches=originCandidates(trip).filter(c => normalizedHour(c.time)===wanted);
-  const selected=matches.filter(c=>c.source==='corrente').at(-1) || matches.filter(c=>c.source==='histórico').sort((a,b)=>b.nr-a.nr)[0];
-  if(!selected) return;
+
+function fillFromCandidate(trip, selected, overwrite = true) {
+  if (!selected) return;
   const fill = (field, value) => {
-    const input=tripField(trip,field);
-    if(input && value !== undefined && value !== null && String(value).trim() && (overwrite || !input.value))
-      { input.value=String(value).trim(); autoFilled.set(input,input.value); }
+    const input = tripField(trip, field);
+    if (input && value !== undefined && value !== null && String(value).trim() && (overwrite || !input.value)) {
+      input.value = String(value).trim();
+      autoFilled.set(input, input.value);
+    }
   };
-  fill('kmInicial',selected.km);
-  fill('nivelCombustivelInicial',selected.fuel);
-  if(!isOperationalTrip(trip)) fill('origem',selected.destination);
+  fill('kmInicial', selected.km);
+  fill('nivelCombustivelInicial', selected.fuel);
+  if (!isOperationalTrip(trip)) fill('origem', selected.destination);
   updateProgress();
+}
+
+function applyPreviousEnd(trip, time, overwrite = true) {
+  const wanted = normalizedHour(time);
+  if (!wanted) return;
+  const matches = originCandidates(trip).filter(c => normalizedHour(c.time) === wanted);
+  const selected = matches.filter(c=>c.source==='corrente').at(-1)
+    || matches.filter(c=>c.source==='histórico').sort((a,b)=>b.nr-a.nr)[0];
+  fillFromCandidate(trip, selected, overwrite);
 }
 function onStartTimeChanged(trip) {
   updateHourSuggestions(trip);
@@ -1119,7 +1130,7 @@ function seedStartFromPrevious(trip) {
   if(!previous) return;
   input.value=normalizedHour(previous.time);
   autoFilled.set(input,input.value);
-  applyPreviousEnd(trip,input.value,false);
+  fillFromCandidate(trip, previous, false);
   updateHourSuggestions(trip);
 }
 
@@ -1131,9 +1142,12 @@ function setupTrip(trip) {
   suggestions.setAttribute('aria-label','Sugerir hora de início a partir dos deslocamentos anteriores');
   suggestions.style.marginTop='6px';
   suggestions.addEventListener('change',()=>{
-    if(!suggestions.value) return;
-    hour.value=suggestions.value;
-    onStartTimeChanged(trip);
+    if (suggestions.value === '') return;
+    const selected = suggestions.candidates?.[Number(suggestions.value)];
+    if (!selected) return;
+    hour.value = normalizedHour(selected.time);
+    autoFilled.set(hour, hour.value);
+    fillFromCandidate(trip, selected, true);
   });
   hour.closest('label').append(suggestions);
   hour.addEventListener('change',()=>{autoFilled.delete(hour);onStartTimeChanged(trip);});
@@ -1211,6 +1225,7 @@ addTripButton.addEventListener('click', () => {
   tripsContainer.append(trip);
   updateTripType(trip);
   seedStartFromPrevious(trip);
+  tripsContainer.querySelectorAll('.trip-entry').forEach(updateHourSuggestions);
   refreshTripLabels();
   updateProgress();
   document.querySelector('#formHint').textContent =

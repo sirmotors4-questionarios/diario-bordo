@@ -1030,7 +1030,10 @@ function updateTripType(trip) {
 
 // As opções da hora de início incluem finais do dia no histórico e no lote corrente.
 function normalizedHour(raw) {
-  const value = String(raw ?? '').trim();
+  const rawValue = String(raw ?? '').trim();
+  // Quando chega um intervalo "06:00 - 07:15", usar somente a hora final.
+  const parts = rawValue.split(/\\s*[-–—]\\s*/);
+  const value = parts.length > 1 ? parts[1].trim() : rawValue;
   const time = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (time) {
     const h = Number(time[1]), m = Number(time[2]);

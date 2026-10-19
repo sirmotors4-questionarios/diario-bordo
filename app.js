@@ -1026,6 +1026,7 @@ function refreshTripLabels() {
 }
 
 setupTrip(tripsContainer.querySelector('.trip-entry'));
+updateTripType(tripsContainer.querySelector('.trip-entry'));
 
 addTripButton.addEventListener('click', () => {
   const active = tripsContainer.querySelector('.trip-entry:not(.trip-collapsed)')

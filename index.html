@@ -40,6 +40,14 @@
           <label class="wide">Viatura disponível *<select name="viatura" data-list="viaturas" required><option value="">A carregar...</option></select></label>
           <label>Motorista activo *<select name="motorista" data-list="motoristas" required><option value="">A carregar...</option></select></label>
           <label>Assistente activo *<select name="assistente" data-list="assistentes" required><option value="">A carregar...</option></select></label>
+          <label class="wide">R. Lançamento *
+            <select name="responsavelLancamento" id="responsavelLancamento" required aria-controls="outroResponsavel">
+              <option value="__outro__">Outro — indicar responsável</option>
+            </select>
+          </label>
+          <label class="wide" id="outroResponsavelLabel">Nome do responsável pelo lançamento *
+            <input type="text" name="outroResponsavel" id="outroResponsavel" maxlength="120" autocomplete="name" placeholder="Introduza o nome de quem está a lançar" required>
+          </label>
         </div>
       </section>
 

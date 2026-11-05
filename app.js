@@ -1427,7 +1427,7 @@ form.addEventListener('submit', async event => {
     return;
   }
   const common = {
-    responsavel_lancamento: nomeResponsavel,
+    'R. Lançamento': nomeResponsavel,
     data: form.elements.data.value,
     turno: form.elements.turno.value,
     viatura: form.elements.viatura.value,

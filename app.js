@@ -7,6 +7,61 @@ const successPanel = document.querySelector('#successPanel');
 const routeSelect = document.querySelector('[data-list="rotas"]');
 const sentidoSelect = document.querySelector('#sentidoSelect');
 
+// R. Lançamento: nomes conhecidos localmente e nos registos devolvidos pelo histórico.
+const responsavelSelect = document.querySelector('#responsavelLancamento');
+const outroResponsavelLabel = document.querySelector('#outroResponsavelLabel');
+const outroResponsavelInput = document.querySelector('#outroResponsavel');
+const RESPONSAVEIS_KEY = 'sirDiarioBordoResponsaveis';
+function nomesGuardados() {
+  try {
+    const names = JSON.parse(localStorage.getItem(RESPONSAVEIS_KEY) || '[]');
+    return Array.isArray(names) ? names.filter(name => typeof name === 'string' && name.trim()) : [];
+  } catch { return []; }
+}
+function actualizarResponsaveis(nomes = []) {
+  const anterior = responsavelSelect.value;
+  const distintos = [...new Map(
+    [...nomesGuardados(), ...nomes]
+      .map(nome => String(nome ?? '').trim())
+      .filter(nome => nome && nome.toLowerCase() !== 'outro')
+      .map(nome => [nome.toLocaleLowerCase('pt'), nome])
+  ).values()].sort((a,b) => a.localeCompare(b,'pt'));
+  responsavelSelect.replaceChildren();
+  const escolha = document.createElement('option');
+  escolha.value = '__outro__';
+  escolha.textContent = 'Outro — indicar responsável';
+  responsavelSelect.append(escolha);
+  for (const nome of distintos) {
+    const option = document.createElement('option');
+    option.value = nome;
+    option.textContent = nome;
+    responsavelSelect.append(option);
+  }
+  responsavelSelect.value = distintos.includes(anterior) ? anterior : '__outro__';
+  actualizarCampoOutro();
+}
+function actualizarCampoOutro() {
+  const outro = responsavelSelect.value === '__outro__';
+  outroResponsavelLabel.hidden = !outro;
+  outroResponsavelInput.disabled = !outro;
+  outroResponsavelInput.required = outro;
+  updateProgress();
+}
+responsavelSelect.addEventListener('change', actualizarCampoOutro);
+function responsavelActual() {
+  return (responsavelSelect.value === '__outro__'
+    ? outroResponsavelInput.value
+    : responsavelSelect.value).trim();
+}
+function guardarResponsavel(nome) {
+  try {
+    const todos = [...nomesGuardados(), nome];
+    localStorage.setItem(RESPONSAVEIS_KEY, JSON.stringify([...new Set(todos.filter(Boolean))]));
+  } catch (error) { console.warn('Não foi possível guardar o nome localmente.', error); }
+  actualizarResponsaveis([nome]);
+}
+actualizarResponsaveis();
+
 const routeDirections = new Map();
 
 const ROUTE_ENDPOINTS = {
@@ -854,6 +909,7 @@ function renderHistory(rows) {
       ['Combustível inicial', historyField(row, 'Combustivel_Inicial', 'Nível Combustível Início', 'combustivel_inicio')],
       ['Combustível final', historyField(row, 'Combustivel_Final', 'Nível Combustível Fim', 'combustivel_fim')],
       ['Motorista', historyField(row, 'Motorista', 'motorista')],
+      ['R. Lançamento', historyField(row, 'R. Lançamento', 'R_Lancamento', 'Responsavel_Lancamento', 'responsavel_lancamento')],
       ['Observações', historyField(row, 'Observacoes', 'Observações', 'observacoes')]
     ];
 
@@ -931,6 +987,7 @@ async function loadHistory() {
     );
     availableHistory = chronologicalHistory(matching);
     renderHistory(availableHistory);
+    actualizarResponsaveis(availableHistory.map(row => historyField(row, 'R. Lançamento', 'R_Lancamento', 'Responsavel_Lancamento', 'responsavel_lancamento')));
     populateFromLastTrip(availableHistory);
     tripsContainer.querySelectorAll('.trip-entry').forEach(trip=>{updateHourSuggestions(trip); seedStartFromPrevious(trip);});
   } catch (error) {
@@ -1362,7 +1419,15 @@ form.addEventListener('submit', async event => {
     document.querySelector('#formHint').textContent = 'Preencha todos os campos obrigatórios.';
     return;
   }
+  const nomeResponsavel = responsavelActual();
+  if (!nomeResponsavel) {
+    outroResponsavelInput.classList.add('invalid');
+    outroResponsavelInput.focus();
+    document.querySelector('#formHint').textContent = 'Indique o responsável pelo lançamento.';
+    return;
+  }
   const common = {
+    responsavel_lancamento: nomeResponsavel,
     data: form.elements.data.value,
     turno: form.elements.turno.value,
     viatura: form.elements.viatura.value,
@@ -1402,6 +1467,7 @@ form.addEventListener('submit', async event => {
       entries.push(...registos);
       localStorage.setItem('sirDiarioBordoDemo', JSON.stringify(entries));
     }
+    guardarResponsavel(nomeResponsavel);
     form.hidden = true;
     successPanel.hidden = false;
     document.querySelector('#successMessage').textContent =
@@ -1432,6 +1498,8 @@ document
 
 
       form.reset();
+      actualizarResponsaveis();
+      outroResponsavelInput.value = '';
       const extras = [...tripsContainer.querySelectorAll('.trip-entry')].slice(1);
       extras.forEach(trip => trip.remove());
       const firstTrip = tripsContainer.querySelector('.trip-entry');
